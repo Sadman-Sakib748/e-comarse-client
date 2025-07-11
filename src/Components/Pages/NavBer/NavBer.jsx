@@ -58,7 +58,7 @@ const Navbar = () => {
 
       <li>
         <NavLink
-          to="/products"
+          to="/BrowseAll"
           className={({ isActive }) =>
             `flex items-center gap-1 px-3 py-2 rounded-md transition ${
               isActive ? "text-yellow-300" : "text-gray-700 hover:text-red-600"

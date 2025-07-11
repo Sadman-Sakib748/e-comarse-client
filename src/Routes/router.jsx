@@ -13,6 +13,11 @@ import ErrorPage from "../Components/ErrorPage/ErrorPage";
 import Products from "../Components/Pages/Products/Products";
 import BrowseAll from "../Components/Pages/BrowseAll/BrowseAll";
 import Payment from "../Components/Pages/Dashboard/Payment/Payment";
+import PaymentHistory from "../Components/Pages/Dashboard/PaymentHistory/PaymentHistory";
+import UpdateProfile from "../Components/Pages/Dashboard/UpdateProfile/UpdateProfile";
+import ProductCreate from "../Components/Pages/Dashboard/ProductCreate/ProductCreate";
+import MyProducts from "../Components/Pages/Dashboard/MyProducts/MyProducts";
+import AllUsers from "../Components/Pages/Dashboard/Allusers/Allusers";
 
 
 
@@ -38,14 +43,17 @@ export const router = createBrowserRouter([
                 path: 'products/:id',
                 element: <Products />,
                 loader: async ({ params }) => {
-                    const res = await fetch(`http://localhost:5000/product/${params.id}`);
-
-                    if (!res.ok) {
-                        throw new Response('Not Found', { status: 404 });
+                    const { id } = params;
+                    try {
+                        const res = await fetch(`http://localhost:5000/product/${id}`);
+                        if (!res.ok) {
+                            throw new Error('Failed to fetch product');
+                        }
+                        const product = await res.json();
+                        return product;
+                    } catch (error) {
+                        throw new Response("Product not found", { status: 404 });
                     }
-
-                    const data = await res.json();
-                    return data; // useLoaderData এ যাবে
                 },
             },
 
@@ -70,12 +78,32 @@ export const router = createBrowserRouter([
             {
                 path: 'product/:email',
                 element: <ProductList />,
-                loader: ({params}) => fetch(`http://localhost:5000/productAdd?email=${params.email}`)
             },
 
             {
                 path: 'payment/:newId',
                 element: <Payment />
+            },
+            {
+                path: 'paymentHistory',
+                element: <PaymentHistory />
+            },
+            {
+                path: 'updateProfile',
+                element: <UpdateProfile />
+            },
+            // vendor
+            {
+                path: 'createProduct',
+                element: <ProductCreate />
+            },
+            {
+                path: 'myProducts',
+                element: <MyProducts />
+            },
+            {
+                path: 'allUsers',
+                element: <AllUsers />
             },
         ]
     }

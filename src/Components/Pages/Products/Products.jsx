@@ -1,6 +1,5 @@
 import React from 'react';
-import { useLoaderData } from 'react-router';
-
+import { useLoaderData } from 'react-router';  // react-router-dom থেকে নিতে হবে
 import { toast } from 'react-hot-toast';
 import useAxiosSecure from '../../hooks/useAxiousSecure';
 import useAuth from '../../hooks/useAuth';
@@ -9,15 +8,13 @@ const Products = () => {
   const product = useLoaderData();
   const axiosSecure = useAxiosSecure();
   const { user } = useAuth();
+
   if (!product || !product.items) {
     return <div className="text-center p-6 text-gray-600">Loading or No Data Found</div>;
   }
 
-  const totalPrice = product.items.reduce((sum, item) => {
-    return sum + Number(item.price);
-  }, 0);
+  const totalPrice = product.items.reduce((sum, item) => sum + Number(item.price), 0);
 
-  // 🟢 POST function
   const handleSubmit = async () => {
     try {
       const res = await axiosSecure.post('/productAdd', {
@@ -75,12 +72,13 @@ const Products = () => {
               <td className="border border-gray-300 p-2">{item.price} ৳</td>
               <td className="border border-gray-300 p-2">{item.unit}</td>
               <td
-                className={`border border-gray-300 p-2 ${item.change.startsWith('+')
+                className={`border border-gray-300 p-2 ${
+                  item.change.startsWith('+')
                     ? 'text-green-600'
                     : item.change === '0'
-                      ? 'text-gray-600'
-                      : 'text-red-600'
-                  }`}
+                    ? 'text-gray-600'
+                    : 'text-red-600'
+                }`}
               >
                 {item.change}
               </td>
@@ -96,7 +94,6 @@ const Products = () => {
         </tbody>
       </table>
 
-      {/* 🟢 Submit Button */}
       <button
         onClick={handleSubmit}
         className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"

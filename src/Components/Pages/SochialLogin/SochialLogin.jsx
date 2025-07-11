@@ -1,6 +1,7 @@
+import axios from 'axios';
 import { FcGoogle } from 'react-icons/fc';
 import { toast } from 'react-hot-toast';
-import { useNavigate } from 'react-router';  // এখানে react-router-dom হবে
+import { useNavigate } from 'react-router';  // fixed import
 import useAuth from '../../hooks/useAuth';
 
 const SochialLogin = () => {
@@ -14,7 +15,18 @@ const SochialLogin = () => {
       console.log('Google login success:', user);
       toast.success(`Welcome, ${user.displayName || 'User'}!`);
 
-      navigate('/dashboard');
+      // Prepare user data to send to backend
+      const userData = {
+        name: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+        uid: user.uid,
+      };
+
+      // POST to your backend API
+      await axios.post('https://your-backend-api.com/api/users/google-login', userData);
+
+      navigate('/dashboard');  // navigate after successful login and POST
     } catch (error) {
       console.error('Google login error:', error);
       toast.error('Google login failed!');

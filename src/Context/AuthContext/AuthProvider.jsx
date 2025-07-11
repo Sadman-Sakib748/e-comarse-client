@@ -3,9 +3,10 @@ import { AuthContext } from './AuthContext';
 import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut, updateProfile } from 'firebase/auth';
 import { auth } from '../../firebase/firebase.config';
 import { GoogleAuthProvider } from 'firebase/auth/web-extension';
+import useAxiosPublic from '../../Components/hooks/useAxiosPublic';
 
 const AuthProvider = ({ children }) => {
-
+    const axiosPublic = useAxiosPublic();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const googleProvider = new GoogleAuthProvider();
@@ -45,22 +46,26 @@ const AuthProvider = ({ children }) => {
     // Listen to Auth State
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            console.log("Auth Changed:", currentUser);
             setUser(currentUser);
-            if (currentUser) {
-                // Get fresh ID token
-                const idToken = await currentUser.getIdToken();
-                // Store in localStorage
-                localStorage.setItem("access_token", idToken);
-            } else {
-                localStorage.removeItem("access_token");
-            }
-
+            // if (currentUser) {
+            //     const userInfo = { email: currentUser.email }
+            //     axiosPublic.post('/jwt', userInfo)
+            //         .then(res => {
+            //             if (res.data.token) {
+            //                 localStorage.setItem('access-token', res.data.token)
+            //             }
+            //         })
+            // } else {
+            //     localStorage.removeItem('access-token');
+            // }
+            console.log(currentUser, 'user cretar')
             setLoading(false);
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [axiosPublic]);
+
+
 
     const authInfo = {
         user,
