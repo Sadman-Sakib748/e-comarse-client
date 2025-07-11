@@ -1,38 +1,26 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
-import useAxiosSecure from '../../../hooks/useAxiousSecure';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+
 import useAuth from '../../../hooks/useAuth';
+import { useNavigate } from 'react-router';
 import toast from 'react-hot-toast';
+import useAxiosSecure from '../../../hooks/useAxiousSecure';
 
 const ProductList = () => {
   const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
   const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  // Load products for specific user
-  useEffect(() => {
-    if (!user?.email) return;
+  const encodedEmail = encodeURIComponent(user?.email || '');
 
-    setLoading(true);
-    axiosSecure
-      .get(`/productAdd/${user.email}`)
-      .then((res) => {
-        if (Array.isArray(res.data)) {
-          setProducts(res.data);
-        } else if (res.data) {
-          setProducts([res.data]); // if it's a single object
-        } else {
-          setProducts([]);
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error("❌ Failed to load products.");
-      })
-      .finally(() => setLoading(false));
-  }, [user?.email, axiosSecure]);
+  const { data: products = [], isLoading, isError } = useQuery({
+    enabled: !!user?.email,
+    queryKey: ['products', user?.email],
+    queryFn: async () => {
+      const res = await axiosSecure.get(`/productAdd/email/${encodedEmail}`);
+      return res.data;
+    },
+  });
 
   const handlePayment = (item) => {
     navigate(`/dashboard/payment/${item._id}`);
@@ -44,8 +32,12 @@ const ProductList = () => {
         🛒 My Product List ({products.length})
       </h1>
 
-      {loading ? (
+      {isLoading ? (
         <p className="text-center font-semibold text-gray-600">Loading...</p>
+      ) : isError ? (
+        <p className="text-center text-red-500">❌ Failed to load products.</p>
+      ) : products.length === 0 ? (
+        <p className="text-center text-gray-500">No products found.</p>
       ) : (
         <div className="overflow-x-auto shadow-xl rounded-lg border border-gray-200 bg-white">
           <table className="min-w-full table-auto">
@@ -86,8 +78,8 @@ const ProductList = () => {
                       onClick={() => handlePayment(item)}
                       disabled={item.payment_status === 'paid'}
                       className={`px-4 py-2 rounded-md shadow-sm transition duration-200 ${item.payment_status === 'paid'
-                          ? 'bg-gray-400 cursor-not-allowed text-white'
-                          : 'bg-blue-600 hover:bg-blue-700 text-white'
+                        ? 'bg-gray-400 cursor-not-allowed text-white'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white'
                         }`}
                     >
                       {item.payment_status === 'paid' ? 'Paid' : 'Pay Now'}

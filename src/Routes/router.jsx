@@ -18,6 +18,7 @@ import UpdateProfile from "../Components/Pages/Dashboard/UpdateProfile/UpdatePro
 import ProductCreate from "../Components/Pages/Dashboard/ProductCreate/ProductCreate";
 import MyProducts from "../Components/Pages/Dashboard/MyProducts/MyProducts";
 import AllUsers from "../Components/Pages/Dashboard/Allusers/Allusers";
+import VendorRoute from "./VendorRoute";
 
 
 
@@ -42,19 +43,8 @@ export const router = createBrowserRouter([
             {
                 path: 'products/:id',
                 element: <Products />,
-                loader: async ({ params }) => {
-                    const { id } = params;
-                    try {
-                        const res = await fetch(`http://localhost:5000/product/${id}`);
-                        if (!res.ok) {
-                            throw new Error('Failed to fetch product');
-                        }
-                        const product = await res.json();
-                        return product;
-                    } catch (error) {
-                        throw new Response("Product not found", { status: 404 });
-                    }
-                },
+                loader: async ({ params }) => fetch(`http://localhost:5000/products/${params.id}`)
+
             },
 
             {
@@ -76,8 +66,9 @@ export const router = createBrowserRouter([
                 element: <DashbordHome />
             },
             {
-                path: 'product/:email',
+                path: 'product',
                 element: <ProductList />,
+                // loader: ({params}) => fetch(``)
             },
 
             {

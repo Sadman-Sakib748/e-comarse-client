@@ -116,7 +116,7 @@ const TodayProducts = () => {
                 </div>
                 <div className="flex justify-between items-center border-t pt-3 text-sm text-gray-600">
                   <span>{product.vendor}</span>
-                  <Link to={`/products/${product.id}`}>
+                  <Link to={`/products/${product._id}`}>
                     <button className="flex items-center text-white bg-red-600 px-3 py-1.5 rounded hover:bg-red-700">
                       View Details <ArrowRight className="ml-1 h-4 w-4" />
                     </button>

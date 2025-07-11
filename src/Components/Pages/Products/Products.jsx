@@ -6,6 +6,7 @@ import useAuth from '../../hooks/useAuth';
 
 const Products = () => {
   const product = useLoaderData();
+  console.log(product)
   const axiosSecure = useAxiosSecure();
   const { user } = useAuth();
 
