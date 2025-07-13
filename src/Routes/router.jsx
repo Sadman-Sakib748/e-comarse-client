@@ -30,6 +30,8 @@ import MyAdvertisements from "../Components/Pages/Dashboard/VenAddAdvertisement/
 import Advertisements from "../Components/Pages/Advertisements/Advertisements";
 import AdvertisementDetails from "../Components/Pages/AdvertisementDetails/AdvertisementDetails";
 import Markets from "../Components/Pages/Markets/Markets";
+import AllOrder from "../Components/Pages/Dashboard/AllOrder/AllOrder";
+import AdminAllProducts from "../Components/Pages/Dashboard/AdminAllProducts/AdminAllProducts";
 
 
 
@@ -97,10 +99,6 @@ export const router = createBrowserRouter([
         element: <Dashboard />,
         children: [
             {
-                index: true,
-                element: <DashbordHome />
-            },
-            {
                 path: 'home',
                 element: <DashbordHome />
             },
@@ -164,11 +162,28 @@ export const router = createBrowserRouter([
                     <MyProducts />
                 </PrivateRoute>
             },
+            // admin
             {
                 path: 'allUsers',
                 element:
                     <AdminRoute>
                         <AllUsers />
+                    </AdminRoute>
+
+            },
+            {
+                path: 'allOrder',
+                element:
+                    <AdminRoute>
+                        <AllOrder />
+                    </AdminRoute>
+
+            },
+            {
+                path: 'adminallProducts',
+                element:
+                    <AdminRoute>
+                        <AdminAllProducts />
                     </AdminRoute>
 
             },

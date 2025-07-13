@@ -1,124 +1,98 @@
-import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
-import useAxiosSecure from "../../../hooks/useAxiousSecure";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import useAxiosSecure from '../../../hooks/useAxiousSecure';
+import { toast } from 'react-hot-toast';
 
-const AdminAllProducts = () => {
-    const [products, setProducts] = useState([]);
-    const [rejectionModal, setRejectionModal] = useState(null); // product ID for modal
-    const [rejectionReason, setRejectionReason] = useState("");
-    const axioseSecure = useAxiosSecure();
+const AllProducts = () => {
+  const axiosSecure = useAxiosSecure();
+  const queryClient = useQueryClient();
 
-    useEffect(() => {
-        axioseSecure
-            .get("/product")
-            .then((res) => setProducts(res.data))
-            .catch((err) => console.error(err));
-    }, []);
+  // ✅ Load all products
+  const { data: products = [], isLoading, isError, error } = useQuery({
+    queryKey: ['allProducts'],
+    queryFn: async () => {
+      const res = await axiosSecure.get('/product'); // ✅ Changed here
+      return res.data;
+    },
+  });
 
-    const handleApprove = async (id) => {
-        try {
-            await axioseSecure.patch(`/product/${id}/approve`);
-            toast.success("Approved");
-            setProducts(
-                products.map((p) => (p._id === id ? { ...p, status: "approved" } : p))
-            );
-        } catch {
-            toast.error("Failed to approve");
-        }
-    };
+  // ✅ Approve product
+  const approveMutation = useMutation({
+    mutationFn: async (id) => await axiosSecure.patch(`/product/${id}/approve`),
+    onSuccess: () => {
+      toast.success('✅ Product approved');
+      queryClient.invalidateQueries(['allProducts']);
+    },
+    onError: () => toast.error('❌ Approval failed'),
+  });
 
-    const handleReject = async () => {
-        try {
-            await axioseSecure.patch(`/products/${rejectionModal}/reject`, {
-                reason: rejectionReason,
-            });
-            toast.success("Rejected");
-            setProducts(
-                products.map((p) =>
-                    p._id === rejectionModal
-                        ? { ...p, status: "rejected", rejectionReason }
-                        : p
-                )
-            );
-            setRejectionModal(null);
-            setRejectionReason("");
-        } catch {
-            toast.error("Rejection failed");
-        }
-    };
+  // ✅ Reject with reason
+  const rejectMutation = useMutation({
+    mutationFn: async ({ id, reason }) => await axiosSecure.patch(`/product/${id}/reject`, { reason }),
+    onSuccess: () => {
+      toast.success('🚫 Product rejected');
+      queryClient.invalidateQueries(['allProducts']);
+    },
+    onError: () => toast.error('❌ Rejection failed'),
+  });
 
-    return (
-        <div className="p-4">
-            <h2 className="text-2xl font-bold mb-4">🛠️ All Vendor Products</h2>
-            <div className="overflow-x-auto">
-                <table className="table w-full">
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Vendor</th>
-                            <th>Status</th>
-                            <th>Rejection Reason</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {products.map((p) => (
-                            <tr key={p._id}>
-                                <td>{p.itemName}</td>
-                                <td>{p.vendorEmail}</td>
-                                <td>{p.status}</td>
-                                <td>{p.rejectionReason || "-"}</td>
-                                <td>
-                                    {p.status === "pending" && (
-                                        <>
-                                            <button onClick={() => handleApprove(p._id)} className="btn btn-sm btn-success mr-2">
-                                                Approve
-                                            </button>
-                                            <button
-                                                onClick={() => setRejectionModal(p._id)}
-                                                className="btn btn-sm btn-error"
-                                            >
-                                                Reject
-                                            </button>
-                                        </>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+  // ✅ Delete product
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => await axiosSecure.delete(`/product/${id}`),
+    onSuccess: () => {
+      toast.success('🗑️ Product deleted');
+      queryClient.invalidateQueries(['allProducts']);
+    },
+    onError: () => toast.error('❌ Deletion failed'),
+  });
 
-            {/* Rejection Modal */}
-            {rejectionModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className="bg-white p-6 rounded shadow w-[400px]">
-                        <h3 className="text-lg font-bold mb-2">Rejection Reason</h3>
-                        <textarea
-                            className="textarea textarea-bordered w-full"
-                            rows="3"
-                            value={rejectionReason}
-                            onChange={(e) => setRejectionReason(e.target.value)}
-                        />
-                        <div className="mt-4 flex justify-end gap-2">
-                            <button
-                                onClick={() => setRejectionModal(null)}
-                                className="btn btn-sm btn-outline"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleReject}
-                                className="btn btn-sm btn-error"
-                            >
-                                Submit
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+  const handleReject = (id) => {
+    const reason = prompt('Enter rejection reason:');
+    if (reason) {
+      rejectMutation.mutate({ id, reason });
+    }
+  };
+
+  if (isLoading) return <p>Loading...</p>;
+  if (isError) return <p>Error: {error.message}</p>;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+      {products.map((product) => (
+        <div key={product._id} className="border rounded-lg p-4 shadow-md space-y-2">
+          <h2 className="text-xl font-bold">{product.marketName}</h2>
+          <p>Date: {product.date}</p>
+          <p>Status: <span className="font-semibold">{product.status}</span></p>
+          <p>Vendor: <span className="text-sm text-gray-600">{product.vendorEmail}</span></p>
+          {product.rejectionReason && (
+            <p className="text-sm text-red-500">Reason: {product.rejectionReason}</p>
+          )}
+
+          <div className="flex flex-wrap gap-2 mt-2">
+            <button
+              onClick={() => approveMutation.mutate(product._id)}
+              className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+              disabled={product.status === 'approved'}
+            >
+              Approve
+            </button>
+            <button
+              onClick={() => handleReject(product._id)}
+              className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+              disabled={product.status === 'rejected'}
+            >
+              Reject
+            </button>
+            <button
+              onClick={() => deleteMutation.mutate(product._id)}
+              className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              Delete
+            </button>
+          </div>
         </div>
-    );
+      ))}
+    </div>
+  );
 };
 
-export default AdminAllProducts;
+export default AllProducts;

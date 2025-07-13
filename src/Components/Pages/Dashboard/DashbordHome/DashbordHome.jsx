@@ -12,72 +12,84 @@ import {
   ResponsiveContainer,
 } from "recharts"
 import { useQuery } from "@tanstack/react-query"
+import useAuth from "../../../hooks/useAuth"
 
+// ====== API Functions ======
 const fetchProducts = async () => {
-  const res = await fetch("http://localhost:5000/productAdd")
+  const res = await fetch("http://localhost:5000/product")
   if (!res.ok) throw new Error("Failed to fetch products")
   return res.json()
 }
 
-// Dummy watchlist and orders data (তুমি API থেকে আনতে পারো)
-const watchlistData = [
-  { id: 1, product: "Onion", price: 30, unit: "kg" },
-  { id: 2, product: "Tomato", price: 45, unit: "kg" },
-]
+const fetchWatchlist = async () => {
+  const res = await fetch("http://localhost:5000/watchlist")
+  if (!res.ok) throw new Error("Failed to fetch watchlist")
+  return res.json()
+}
 
-const ordersData = [
-  {
-    id: 1,
-    marketName: "New Market",
-    date: "2025-01-08",
-    totalPrice: 215,
-    payment_status: "paid",
-  },
-  {
-    id: 2,
-    marketName: "Old Market",
-    date: "2025-01-10",
-    totalPrice: 180,
-    payment_status: "processing",
-  },
-]
+const fetchOrders = async (email) => {
+  const res = await fetch(`http://localhost:5000/orders/${email}`)
+  if (!res.ok) throw new Error("Failed to fetch orders")
+  return res.json()
+}
 
+// ====== Main Component ======
 const DashboardHome = () => {
-  const { data, isLoading, isError, error } = useQuery({
+  const { user } = useAuth()
+  const [activeTab, setActiveTab] = useState("priceTrends")
+
+  // Fetch product data (for chart)
+  const {
+    data: productData = [],
+    isLoading: loadingProducts,
+    isError: errorProducts,
+    error: productError,
+  } = useQuery({
     queryKey: ["products"],
     queryFn: fetchProducts,
   })
 
-  const [activeTab, setActiveTab] = useState("priceTrends")
+  // Fetch watchlist
+  const { data: watchlist = [], isLoading: loadingWatchlist } = useQuery({
+    queryKey: ["watchlist"],
+    queryFn: fetchWatchlist,
+  })
 
-  // Prepare price trend data for chart
+  // Fetch orders
+  const { data: orders = [], isLoading: loadingOrders } = useQuery({
+    queryKey: ["myOrders", user?.email],
+    queryFn: () => fetchOrders(user.email),
+    enabled: !!user?.email,
+  })
+
+  // Prepare chart data
   const priceData =
-    data && data.length > 0
-      ? data.map((entry) => {
-          const onionObj = entry.items.find((i) => i.name.toLowerCase() === "onion")
-          const potatoObj = entry.items.find((i) => i.name.toLowerCase() === "potato")
-          const tomatoObj = entry.items.find((i) => i.name.toLowerCase() === "tomato")
+    productData.length > 0
+      ? productData.map((entry) => {
+          const onion = entry.items.find((i) => i.name.toLowerCase() === "onion")
+          const potato = entry.items.find((i) => i.name.toLowerCase() === "potato")
+          const tomato = entry.items.find((i) => i.name.toLowerCase() === "tomato")
 
           return {
             date: entry.date,
-            onion: onionObj ? Number(onionObj.price) : 0,
-            potato: potatoObj ? Number(potatoObj.price) : 0,
-            tomato: tomatoObj ? Number(tomatoObj.price) : 0,
+            onion: onion ? Number(onion.price) : 0,
+            potato: potato ? Number(potato.price) : 0,
+            tomato: tomato ? Number(tomato.price) : 0,
           }
         })
       : [{ date: "2025-01-01", onion: 0, potato: 0, tomato: 0 }]
 
-  if (isLoading)
+  if (loadingProducts)
     return (
       <div className="min-h-screen flex justify-center items-center text-xl font-semibold">
         Loading...
       </div>
     )
 
-  if (isError)
+  if (errorProducts)
     return (
       <div className="min-h-screen flex justify-center items-center text-xl font-semibold text-red-600">
-        Error: {error.message}
+        Error: {productError.message}
       </div>
     )
 
@@ -90,44 +102,31 @@ const DashboardHome = () => {
           transition={{ duration: 0.6 }}
         >
           <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6">
-            User Dashboard
+            📊 User Dashboard
           </h1>
 
           {/* Tabs */}
           <div className="flex gap-4 mb-6">
-            <button
-              onClick={() => setActiveTab("priceTrends")}
-              className={`px-4 py-2 rounded font-semibold ${
-                activeTab === "priceTrends"
-                  ? "bg-red-500 text-white"
-                  : "bg-white border border-gray-300"
-              }`}
-            >
-              দাম ট্রেন্ড
-            </button>
-            <button
-              onClick={() => setActiveTab("watchlist")}
-              className={`px-4 py-2 rounded font-semibold ${
-                activeTab === "watchlist"
-                  ? "bg-red-500 text-white"
-                  : "bg-white border border-gray-300"
-              }`}
-            >
-              ওয়াচলিস্ট
-            </button>
-            <button
-              onClick={() => setActiveTab("myOrders")}
-              className={`px-4 py-2 rounded font-semibold ${
-                activeTab === "myOrders"
-                  ? "bg-red-500 text-white"
-                  : "bg-white border border-gray-300"
-              }`}
-            >
-              আমার অর্ডার
-            </button>
+            {["priceTrends", "watchlist", "myOrders"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 rounded font-semibold ${
+                  activeTab === tab
+                    ? "bg-red-500 text-white"
+                    : "bg-white border border-gray-300"
+                }`}
+              >
+                {tab === "priceTrends"
+                  ? "দাম ট্রেন্ড"
+                  : tab === "watchlist"
+                  ? "ওয়াচলিস্ট"
+                  : "আমার অর্ডার"}
+              </button>
+            ))}
           </div>
 
-          {/* Tab content */}
+          {/* Tab Contents */}
           {activeTab === "priceTrends" && (
             <div className="bg-white p-6 rounded shadow">
               <h2 className="text-xl font-bold text-red-700 mb-2">Price History - Last 7 Days</h2>
@@ -147,27 +146,9 @@ const DashboardHome = () => {
                         borderRadius: "8px",
                       }}
                     />
-                    <Line
-                      type="monotone"
-                      dataKey="onion"
-                      stroke="#dc2626"
-                      strokeWidth={3}
-                      name="Onion (৳/kg)"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="potato"
-                      stroke="#ea580c"
-                      strokeWidth={3}
-                      name="Potato (৳/kg)"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="tomato"
-                      stroke="#f97316"
-                      strokeWidth={3}
-                      name="Tomato (৳/kg)"
-                    />
+                    <Line type="monotone" dataKey="onion" stroke="#dc2626" strokeWidth={3} name="Onion (৳/kg)" />
+                    <Line type="monotone" dataKey="potato" stroke="#ea580c" strokeWidth={3} name="Potato (৳/kg)" />
+                    <Line type="monotone" dataKey="tomato" stroke="#f97316" strokeWidth={3} name="Tomato (৳/kg)" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -176,51 +157,63 @@ const DashboardHome = () => {
 
           {activeTab === "watchlist" && (
             <div className="bg-white p-6 rounded shadow">
-              <h2 className="text-xl font-bold text-red-700 mb-4">My Watchlist</h2>
-              <table className="w-full text-left border border-gray-200">
-                <thead>
-                  <tr className="bg-red-100">
-                    <th className="px-4 py-2 border-b">Product</th>
-                    <th className="px-4 py-2 border-b">Price (৳)</th>
-                    <th className="px-4 py-2 border-b">Unit</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {watchlistData.map((item) => (
-                    <tr key={item.id} className="hover:bg-red-50">
-                      <td className="px-4 py-2 border-b">{item.product}</td>
-                      <td className="px-4 py-2 border-b">{item.price}</td>
-                      <td className="px-4 py-2 border-b">{item.unit}</td>
+              <h2 className="text-xl font-bold text-red-700 mb-4">📌 My Watchlist</h2>
+              {loadingWatchlist ? (
+                <p>Loading watchlist...</p>
+              ) : watchlist.length === 0 ? (
+                <p className="text-gray-500">Your watchlist is empty.</p>
+              ) : (
+                <table className="w-full text-left border border-gray-200">
+                  <thead>
+                    <tr className="bg-red-100">
+                      <th className="px-4 py-2 border-b">Product</th>
+                      <th className="px-4 py-2 border-b">Price (৳)</th>
+                      <th className="px-4 py-2 border-b">Unit</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {watchlist.map((item) => (
+                      <tr key={item._id} className="hover:bg-red-50">
+                        <td className="px-4 py-2 border-b">{item.product}</td>
+                        <td className="px-4 py-2 border-b">{item.price}</td>
+                        <td className="px-4 py-2 border-b">{item.unit}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           )}
 
           {activeTab === "myOrders" && (
             <div className="bg-white p-6 rounded shadow">
-              <h2 className="text-xl font-bold text-red-700 mb-4">My Orders</h2>
-              <table className="w-full text-left border border-gray-200">
-                <thead>
-                  <tr className="bg-red-100">
-                    <th className="px-4 py-2 border-b">Market</th>
-                    <th className="px-4 py-2 border-b">Date</th>
-                    <th className="px-4 py-2 border-b">Total Price (৳)</th>
-                    <th className="px-4 py-2 border-b">Payment Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ordersData.map((order) => (
-                    <tr key={order.id} className="hover:bg-red-50">
-                      <td className="px-4 py-2 border-b">{order.marketName}</td>
-                      <td className="px-4 py-2 border-b">{order.date}</td>
-                      <td className="px-4 py-2 border-b">{order.totalPrice}</td>
-                      <td className="px-4 py-2 border-b capitalize">{order.payment_status}</td>
+              <h2 className="text-xl font-bold text-red-700 mb-4">🛍️ My Orders</h2>
+              {loadingOrders ? (
+                <p>Loading orders...</p>
+              ) : orders.length === 0 ? (
+                <p className="text-gray-500">You have not placed any orders yet.</p>
+              ) : (
+                <table className="w-full text-left border border-gray-200">
+                  <thead>
+                    <tr className="bg-red-100">
+                      <th className="px-4 py-2 border-b">Market</th>
+                      <th className="px-4 py-2 border-b">Date</th>
+                      <th className="px-4 py-2 border-b">Total Price (৳)</th>
+                      <th className="px-4 py-2 border-b">Payment</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {orders.map((order) => (
+                      <tr key={order._id} className="hover:bg-red-50">
+                        <td className="px-4 py-2 border-b">{order.marketName}</td>
+                        <td className="px-4 py-2 border-b">{order.date}</td>
+                        <td className="px-4 py-2 border-b">{order.totalPrice}</td>
+                        <td className="px-4 py-2 border-b capitalize">{order.payment_status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           )}
         </motion.div>
