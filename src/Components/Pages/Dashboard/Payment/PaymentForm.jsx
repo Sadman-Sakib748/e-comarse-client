@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import useAxiousSecure from '../../../hooks/useAxiousSecure';
 import useAuth from '../../../hooks/useAuth';
+import Spinner from '../../Spinner/Spinner';
 
 const PaymentForm = () => {
     const navigate = useNavigate();
@@ -27,7 +28,7 @@ const PaymentForm = () => {
     });
     console.log(productAddifo)
     if (isPending) {
-        return '...loading';
+        return <Spinner />;
     }
 
     const amount = productAddifo.totalPrice;
@@ -41,6 +42,8 @@ const PaymentForm = () => {
         const card = elements.getElement(CardElement);
         if (!card) return;
 
+        setIsProcessing(true); // ✅ Start processing
+
         const { error, paymentMethod } = await stripe.createPaymentMethod({
             type: 'card',
             card
@@ -49,57 +52,66 @@ const PaymentForm = () => {
         if (error) {
             setErrorMsg(error.message);
             toast.error(error.message);
+            setIsProcessing(false); // ✅ Stop processing on error
+            return;
         } else {
             setErrorMsg('');
             console.log('payment method', paymentMethod);
         }
 
-        // create payment intent
-        const res = await axiousSecure.post(`/create-payment-intent`, {
-            amountInCents,
-            newId
-        });
+        try {
+            // create payment intent
+            const res = await axiousSecure.post(`/create-payment-intent`, {
+                amountInCents,
+                newId
+            });
 
-        const clientSecret = res.data.clientSecret;
+            const clientSecret = res.data.clientSecret;
 
-        const result = await stripe.confirmCardPayment(clientSecret, {
-            payment_method: {
-                card: elements.getElement(CardElement),
-                billing_details: {
-                    name: user.displayName,
-                    email: user.email
+            const result = await stripe.confirmCardPayment(clientSecret, {
+                payment_method: {
+                    card: elements.getElement(CardElement),
+                    billing_details: {
+                        name: user.displayName,
+                        email: user.email
+                    },
                 },
-            },
-        });
+            });
 
-        if (result.error) {
-            setErrorMsg(result.error.message);
-            toast.error(result.error.message);
-        } else {
-            setErrorMsg('');
-            if (result.paymentIntent.status === 'succeeded') {
-                console.log('Payment succeeded!');
+            if (result.error) {
+                setErrorMsg(result.error.message);
+                toast.error(result.error.message);
+            } else {
+                setErrorMsg('');
+                if (result.paymentIntent.status === 'succeeded') {
+                    console.log('Payment succeeded!');
 
-                const paymentData = {
-                    newId,
-                    email: user.email,
-                    amount,
-                    transactionId: result.paymentIntent.id,
-                    paymentMethod: result.paymentIntent.payment_method_types,
-                };
+                    const paymentData = {
+                        newId,
+                        email: user.email,
+                        amount,
+                        transactionId: result.paymentIntent.id,
+                        paymentMethod: result.paymentIntent.payment_method_types,
+                    };
 
-                const paymentRes = await axiousSecure.post('/payments', paymentData);
+                    const paymentRes = await axiousSecure.post('/payments', paymentData);
 
-                if (paymentRes.data.insertedId) {
-                    console.log('payment successfully');
-                    toast.success('Payment successfully!');
-                } else {
-                    toast.error('Payment success, but failed to save record!');
+                    if (paymentRes.data.insertedId) {
+                        console.log('payment successfully');
+                        setSuccessMsg('Payment successful!'); // ✅ Success message
+                        toast.success('Payment successfully!');
+                        navigate('/'); // ✅ Go to homepage
+                    } else {
+                        toast.error('Payment success, but failed to save record!');
+                    }
                 }
             }
+        } catch (err) {
+            console.error(err);
+            toast.error('Something went wrong!');
+        } finally {
+            setIsProcessing(false); // ✅ Stop processing
         }
-
-        console.log('res from intent', result);
     };
 
 

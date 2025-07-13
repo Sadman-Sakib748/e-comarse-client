@@ -1,13 +1,18 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import useAuth from '../hooks/useAuth';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import toast from 'react-hot-toast';
-import SochialLogin from '../Pages/SochialLogin/SochialLogin';
+import useAxiosPublic from '../hooks/useAxiosPublic';
 
 const Login = () => {
-    const { signIn } = useAuth();
+    const { signIn, googleSignIn, updateUserProfile } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+    const axiosPublic = useAxiosPublic();
+
+    // ✅ আগের পেজ যেখানে থেকে এসেছে, না থাকলে হোম
+    const from = location.state?.from?.pathname || "/";
 
     const {
         register,
@@ -15,17 +20,47 @@ const Login = () => {
         formState: { errors },
     } = useForm();
 
+    // ✅ Email/Password Login
     const onSubmit = async (data) => {
         signIn(data.email, data.password)
             .then((result) => {
                 console.log('Logged in user:', result.user);
                 toast.success('Login successful!');
-                navigate('/');
+                navigate(from, { replace: true });
             })
             .catch((err) => {
                 console.error(err);
                 toast.error('Login failed. Please check your credentials.');
             });
+    };
+
+    // ✅ Google Login Handler
+    const handleGoogleLogin = async () => {
+        try {
+            const result = await googleSignIn();
+            const user = result.user;
+
+            // Optional: Update profile with displayName & photoURL if needed
+            await updateUserProfile(user.displayName, user.photoURL);
+
+            // Save to DB
+            const userInfo = {
+                name: user.displayName,
+                email: user.email,
+                photo: user.photoURL,
+                role: 'user',
+                created_at: new Date().toISOString(),
+                last_log_in: new Date().toISOString(),
+            };
+
+            await axiosPublic.post('/users', userInfo);
+
+            toast.success('Signed in with Google!');
+            navigate(from, { replace: true });
+        } catch (error) {
+            console.error(error);
+            toast.error('Google sign-in failed.');
+        }
     };
 
     return (
@@ -75,13 +110,26 @@ const Login = () => {
                     </button>
                 </form>
 
+                <div className="mt-4">
+                    <button
+                        onClick={handleGoogleLogin}
+                        className="w-full flex items-center justify-center gap-2 py-2 border border-gray-300 rounded-md hover:bg-gray-50 mt-4"
+                    >
+                        <img
+                            src="https://www.svgrepo.com/show/475656/google-color.svg"
+                            alt="Google"
+                            className="w-5 h-5"
+                        />
+                        <span>Continue with Google</span>
+                    </button>
+                </div>
+
                 <p className="mt-4 text-sm text-center">
                     Don’t have an account?{' '}
                     <a href="/register" className="text-blue-600 hover:underline">
                         Register
                     </a>
                 </p>
-            <SochialLogin />
             </div>
         </div>
     );

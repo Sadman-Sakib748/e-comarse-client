@@ -1,7 +1,9 @@
-import { Navigate, useLocation } from 'react-router-dom';
-import useAuth from '../hooks/useAuth';
-import useRole from '../hooks/useRole';
-import Spinner from '../components/Spinner'; // Optional
+import { Navigate, useLocation } from 'react-router';
+import useAuth from '../Components/hooks/useAuth';
+import useRole from '../Components/hooks/useRole';
+import Spinner from '../Components/Pages/Spinner/Spinner';
+
+
 
 const AdminRoute = ({ children }) => {
     const { user, loading } = useAuth();

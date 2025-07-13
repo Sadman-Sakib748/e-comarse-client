@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import useAxiosSecure from "../../../hooks/useAxiousSecure";
 import useAuth from "../../../hooks/useAuth";
+import Spinner from "../../Spinner/Spinner";
 
 const MyProducts = () => {
   const { user } = useAuth();
@@ -85,7 +86,7 @@ const MyProducts = () => {
       <h2 className="text-3xl font-bold text-center text-purple-700 mb-6">📦 My Products</h2>
 
       {loading ? (
-        <p className="text-center text-lg font-semibold text-gray-500">Loading products...</p>
+        <p className="text-center text-lg font-semibold text-gray-500"><Spinner /></p>
       ) : products.length === 0 ? (
         <p className="text-center text-lg font-medium text-gray-500">No products found.</p>
       ) : (

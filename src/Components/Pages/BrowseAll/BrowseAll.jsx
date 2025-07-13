@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Clock, MapPin, Star, ArrowRight } from "lucide-react";
 import { Link } from "react-router"; // changed to react-router-dom
 import axios from "axios";
+import Spinner from "../Spinner/Spinner";
 
 // API fetch function
 const fetchTodayProducts = async () => {
@@ -18,11 +19,7 @@ const BrowseAll = () => {
   });
 
   if (isLoading) {
-    return (
-      <div className="py-16 text-center text-gray-500 font-semibold">
-        Loading today's market data...
-      </div>
-    );
+    return <Spinner />;
   }
 
   if (isError) {
@@ -58,7 +55,7 @@ const BrowseAll = () => {
         {/* Products */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {Array.isArray(todayProducts) &&
-          todayProducts.length > 0 ? (
+            todayProducts.length > 0 ? (
             todayProducts.map((product, index) => (
               <motion.div
                 key={product.id || product._id || index}
@@ -95,13 +92,12 @@ const BrowseAll = () => {
                         <div className="flex justify-between items-center mb-1 text-sm">
                           <span>{item.name}</span>
                           <span
-                            className={`text-xs px-2 py-0.5 rounded-full ${
-                              item.change.startsWith("+")
+                            className={`text-xs px-2 py-0.5 rounded-full ${item.change.startsWith("+")
                                 ? "bg-red-100 text-red-600"
                                 : item.change.startsWith("-")
-                                ? "bg-green-100 text-green-600"
-                                : "bg-gray-200 text-gray-600"
-                            }`}
+                                  ? "bg-green-100 text-green-600"
+                                  : "bg-gray-200 text-gray-600"
+                              }`}
                           >
                             {item.change}
                           </span>

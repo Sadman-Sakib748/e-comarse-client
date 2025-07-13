@@ -8,7 +8,6 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [language, setLanguage] = useState("en"); // language toggle still present, but only English text now
   const { user, logOut } = useAuth();
-  const [userRole, setUserRole] = useState("user"); // user, vendor, admin
 
   const toggleLanguage = () => {
     // You can disable or remove this if you want to only keep English
@@ -28,16 +27,6 @@ const Navbar = () => {
     }
   };
 
-  // const getDashboardRoute = () => {
-  //   switch (userRole) {
-  //     case "admin":
-  //       return "/admin/dashboard";
-  //     case "vendor":
-  //       return "/vendor/dashboard";
-  //     default:
-  //       return "/user/dashboard";
-  //   }
-  // };
 
   const navLinks = (
     <>
@@ -88,7 +77,7 @@ const Navbar = () => {
 
       <li>
         <NavLink
-          to="/offers"
+          to="/offer"
           className={({ isActive }) =>
             `px-3 py-2 rounded-md transition ${
               isActive ? "text-yellow-300" : "text-gray-700 hover:text-red-600"

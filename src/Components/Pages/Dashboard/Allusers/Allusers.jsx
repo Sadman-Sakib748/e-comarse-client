@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import useAxiosSecure from '../../../hooks/useAxiousSecure';
+import Spinner from '../../Spinner/Spinner';
 
 const AllUsers = () => {
   const axiosSecure = useAxiosSecure();
@@ -50,7 +51,7 @@ const AllUsers = () => {
       </h2>
 
       {isLoading ? (
-        <p className="text-center text-gray-600">Loading users...</p>
+        <p className="text-center text-gray-600"><Spinner /></p>
       ) : (
         <div className="overflow-x-auto bg-white rounded-xl shadow-lg border border-gray-200">
           <table className="table-auto w-full text-sm">
@@ -72,13 +73,12 @@ const AllUsers = () => {
                   <td className="px-4 py-2 text-gray-600">{user.email}</td>
                   <td className="px-4 py-2">
                     <span
-                      className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${
-                        user.role === 'admin'
+                      className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${user.role === 'admin'
                           ? 'bg-green-100 text-green-700'
                           : user.role === 'vendor'
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-gray-100 text-gray-700'
-                      }`}
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-gray-100 text-gray-700'
+                        }`}
                     >
                       {user.role}
                     </span>

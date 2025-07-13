@@ -1,6 +1,5 @@
 import {
     createBrowserRouter,
-    RouterProvider,
 } from "react-router";
 import Main from "../Layouts/Main";
 import Home from "../Components/Home/Home";
@@ -18,7 +17,19 @@ import UpdateProfile from "../Components/Pages/Dashboard/UpdateProfile/UpdatePro
 import ProductCreate from "../Components/Pages/Dashboard/ProductCreate/ProductCreate";
 import MyProducts from "../Components/Pages/Dashboard/MyProducts/MyProducts";
 import AllUsers from "../Components/Pages/Dashboard/Allusers/Allusers";
+import PrivateRoute from "./PrivateRoute";
+import Offer from "../Components/Pages/Offer/Offer";
+import HelpCenter from "../Components/Pages/Footer/HelpCenter";
+import PrivacyPolicy from "../Components/Pages/Footer/PrivacyPolicy";
+import TermsConditions from "../Components/Pages/Footer/TermsConditions";
+import Contact from "../Components/Pages/Footer/Contact";
 import VendorRoute from "./VendorRoute";
+import AdminRoute from "./AdminRoute";
+import VenAddAdvertisement from "../Components/Pages/Dashboard/VenAddAdvertisement/VenAddAdvertisement";
+import MyAdvertisements from "../Components/Pages/Dashboard/VenAddAdvertisement/MyAdvertisements/MyAdvertisements";
+import Advertisements from "../Components/Pages/Advertisements/Advertisements";
+import AdvertisementDetails from "../Components/Pages/AdvertisementDetails/AdvertisementDetails";
+import Markets from "../Components/Pages/Markets/Markets";
 
 
 
@@ -41,8 +52,36 @@ export const router = createBrowserRouter([
                 element: <BrowseAll />
             },
             {
+                path: 'markets',
+                element: <Markets />
+            },
+            {
+                path: "/advertisement/:id",
+                element: <AdvertisementDetails />
+            },
+            {
+                path: 'helpCenter',
+                element: <HelpCenter />
+            },
+            {
+                path: 'terms',
+                element: <TermsConditions />
+            },
+            {
+                path: 'privacy',
+                element: <PrivacyPolicy />
+            },
+            {
+                path: 'contact',
+                element: <Contact />
+            },
+            {
+                path: 'offer',
+                element: <Offer />
+            },
+            {
                 path: 'products/:id',
-                element: <Products />,
+                element: <PrivateRoute><Products /></PrivateRoute>,
                 loader: async ({ params }) => fetch(`http://localhost:5000/products/${params.id}`)
 
             },
@@ -67,34 +106,71 @@ export const router = createBrowserRouter([
             },
             {
                 path: 'product',
-                element: <ProductList />,
-                // loader: ({params}) => fetch(``)
+                element:
+                    <PrivateRoute>
+                        <ProductList />
+                    </PrivateRoute>
+                ,
             },
 
             {
                 path: 'payment/:newId',
-                element: <Payment />
+                element: <PrivateRoute>
+                    <Payment />
+                </PrivateRoute>
             },
             {
                 path: 'paymentHistory',
-                element: <PaymentHistory />
+                element:
+                    <VendorRoute>
+                        <PaymentHistory />
+                    </VendorRoute>
+
             },
             {
                 path: 'updateProfile',
-                element: <UpdateProfile />
+                element: <PrivateRoute>
+                    <UpdateProfile />
+                </PrivateRoute>
             },
             // vendor
             {
                 path: 'createProduct',
-                element: <ProductCreate />
+                element:
+                    <VendorRoute>
+                        <ProductCreate />
+                    </VendorRoute>
+
+            },
+            {
+                path: 'venAddAdver',
+                element:
+                    <VendorRoute>
+                        <VenAddAdvertisement />
+                    </VendorRoute>
+
+            },
+            {
+                path: 'MyAdvertisements',
+                element:
+                    <VendorRoute>
+                        <MyAdvertisements />
+                    </VendorRoute>
+
             },
             {
                 path: 'myProducts',
-                element: <MyProducts />
+                element: <PrivateRoute>
+                    <MyProducts />
+                </PrivateRoute>
             },
             {
                 path: 'allUsers',
-                element: <AllUsers />
+                element:
+                    <AdminRoute>
+                        <AllUsers />
+                    </AdminRoute>
+
             },
         ]
     }

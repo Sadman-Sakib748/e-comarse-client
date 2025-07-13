@@ -1,14 +1,4 @@
-
-import {
-  ShoppingCart,
-  Facebook,
-  Twitter,
-  Instagram,
-  Mail,
-  Phone,
-  MapPin,
-  Clock,
-} from "lucide-react";
+import { ShoppingCart, Facebook, Twitter, Instagram, Mail, Phone, MapPin, Clock } from "lucide-react";
 import { Link } from "react-router";
 
 export default function Footer() {
@@ -28,17 +18,16 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-gray-400 leading-relaxed">
-              Your trusted platform to track prices of local markets in
-              Bangladesh. Get daily updated prices and vendor information.
+              Your trusted platform to track prices of local markets in Bangladesh. Get daily updated prices and vendor information.
             </p>
             <div className="flex space-x-4">
-              <Link href="#" className="text-gray-400 hover:text-red-400 transition-colors">
+              <Link to="#" className="text-gray-400 hover:text-red-400 transition-colors">
                 <Facebook className="h-5 w-5" />
               </Link>
-              <Link href="#" className="text-gray-400 hover:text-red-400 transition-colors">
+              <Link to="#" className="text-gray-400 hover:text-red-400 transition-colors">
                 <Twitter className="h-5 w-5" />
               </Link>
-              <Link href="#" className="text-gray-400 hover:text-red-400 transition-colors">
+              <Link to="#" className="text-gray-400 hover:text-red-400 transition-colors">
                 <Instagram className="h-5 w-5" />
               </Link>
             </div>
@@ -49,39 +38,23 @@ export default function Footer() {
             <h3 className="text-lg font-semibold text-red-400">Quick Links</h3>
             <ul className="space-y-3">
               <li>
-                <Link
-                  href="/products"
-                  className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
-                >
-                  <span className="w-1 h-1 bg-red-400 rounded-full"></span>
-                  All Products
+                <Link to="/BrowseAll" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2">
+                  <span className="w-1 h-1 bg-red-400 rounded-full"></span> All Products
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/markets"
-                  className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
-                >
-                  <span className="w-1 h-1 bg-red-400 rounded-full"></span>
-                  Local Markets
+                <Link to="/markets" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2">
+                  <span className="w-1 h-1 bg-red-400 rounded-full"></span> Local Markets
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/offers"
-                  className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
-                >
-                  <span className="w-1 h-1 bg-red-400 rounded-full"></span>
-                  Current Offers
+                <Link to="/offer" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2">
+                  <span className="w-1 h-1 bg-red-400 rounded-full"></span> Current Offers
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/vendors"
-                  className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
-                >
-                  <span className="w-1 h-1 bg-red-400 rounded-full"></span>
-                  Vendors
+                <Link to="/vendors" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2">
+                  <span className="w-1 h-1 bg-red-400 rounded-full"></span> Vendors
                 </Link>
               </li>
             </ul>
@@ -92,39 +65,23 @@ export default function Footer() {
             <h3 className="text-lg font-semibold text-red-400">Support</h3>
             <ul className="space-y-3">
               <li>
-                <Link
-                  href="/help"
-                  className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
-                >
-                  <span className="w-1 h-1 bg-red-400 rounded-full"></span>
-                  Help Center
+                <Link to="/helpCenter" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2">
+                  <span className="w-1 h-1 bg-red-400 rounded-full"></span> Help Center
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/terms"
-                  className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
-                >
-                  <span className="w-1 h-1 bg-red-400 rounded-full"></span>
-                  Terms & Conditions
+                <Link to="/terms" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2">
+                  <span className="w-1 h-1 bg-red-400 rounded-full"></span> Terms & Conditions
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/privacy"
-                  className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
-                >
-                  <span className="w-1 h-1 bg-red-400 rounded-full"></span>
-                  Privacy Policy
+                <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2">
+                  <span className="w-1 h-1 bg-red-400 rounded-full"></span> Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/contact"
-                  className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
-                >
-                  <span className="w-1 h-1 bg-red-400 rounded-full"></span>
-                  Contact
+                <Link to="/contact" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2">
+                  <span className="w-1 h-1 bg-red-400 rounded-full"></span> Contact
                 </Link>
               </li>
             </ul>

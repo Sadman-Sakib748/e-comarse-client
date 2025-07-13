@@ -1,93 +1,232 @@
+"use client"
+
+import { useState } from "react"
+import { motion } from "framer-motion"
 import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    ResponsiveContainer,
-    LineChart,
-    Line,
-    Tooltip,
-} from "recharts";
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts"
+import { useQuery } from "@tanstack/react-query"
 
+const fetchProducts = async () => {
+  const res = await fetch("http://localhost:5000/productAdd")
+  if (!res.ok) throw new Error("Failed to fetch products")
+  return res.json()
+}
 
-const priceData = [
-    { month: "Jan", tomatoes: 45, onions: 30, potatoes: 25 },
-    { month: "Feb", tomatoes: 52, onions: 35, potatoes: 28 },
-    { month: "Mar", tomatoes: 48, onions: 32, potatoes: 30 },
-    { month: "Apr", tomatoes: 55, onions: 38, potatoes: 32 },
-    { month: "May", tomatoes: 60, onions: 42, potatoes: 35 },
-    { month: "Jun", tomatoes: 58, onions: 40, potatoes: 33 },
-];
+// Dummy watchlist and orders data (তুমি API থেকে আনতে পারো)
+const watchlistData = [
+  { id: 1, product: "Onion", price: 30, unit: "kg" },
+  { id: 2, product: "Tomato", price: 45, unit: "kg" },
+]
 
-const DashbordHome = () => {
+const ordersData = [
+  {
+    id: 1,
+    marketName: "New Market",
+    date: "2025-01-08",
+    totalPrice: 215,
+    payment_status: "paid",
+  },
+  {
+    id: 2,
+    marketName: "Old Market",
+    date: "2025-01-10",
+    totalPrice: 180,
+    payment_status: "processing",
+  },
+]
+
+const DashboardHome = () => {
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["products"],
+    queryFn: fetchProducts,
+  })
+
+  const [activeTab, setActiveTab] = useState("priceTrends")
+
+  // Prepare price trend data for chart
+  const priceData =
+    data && data.length > 0
+      ? data.map((entry) => {
+          const onionObj = entry.items.find((i) => i.name.toLowerCase() === "onion")
+          const potatoObj = entry.items.find((i) => i.name.toLowerCase() === "potato")
+          const tomatoObj = entry.items.find((i) => i.name.toLowerCase() === "tomato")
+
+          return {
+            date: entry.date,
+            onion: onionObj ? Number(onionObj.price) : 0,
+            potato: potatoObj ? Number(potatoObj.price) : 0,
+            tomato: tomatoObj ? Number(tomatoObj.price) : 0,
+          }
+        })
+      : [{ date: "2025-01-01", onion: 0, potato: 0, tomato: 0 }]
+
+  if (isLoading)
     return (
-        <div className="space-y-6 p-6">
-            <div>
-                <h1 className="text-2xl font-bold text-gray-900">Price Trends</h1>
-                <p className="text-gray-600">Track how product prices change over time</p>
+      <div className="min-h-screen flex justify-center items-center text-xl font-semibold">
+        Loading...
+      </div>
+    )
+
+  if (isError)
+    return (
+      <div className="min-h-screen flex justify-center items-center text-xl font-semibold text-red-600">
+        Error: {error.message}
+      </div>
+    )
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 py-8">
+      <div className="container mx-auto px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6">
+            User Dashboard
+          </h1>
+
+          {/* Tabs */}
+          <div className="flex gap-4 mb-6">
+            <button
+              onClick={() => setActiveTab("priceTrends")}
+              className={`px-4 py-2 rounded font-semibold ${
+                activeTab === "priceTrends"
+                  ? "bg-red-500 text-white"
+                  : "bg-white border border-gray-300"
+              }`}
+            >
+              দাম ট্রেন্ড
+            </button>
+            <button
+              onClick={() => setActiveTab("watchlist")}
+              className={`px-4 py-2 rounded font-semibold ${
+                activeTab === "watchlist"
+                  ? "bg-red-500 text-white"
+                  : "bg-white border border-gray-300"
+              }`}
+            >
+              ওয়াচলিস্ট
+            </button>
+            <button
+              onClick={() => setActiveTab("myOrders")}
+              className={`px-4 py-2 rounded font-semibold ${
+                activeTab === "myOrders"
+                  ? "bg-red-500 text-white"
+                  : "bg-white border border-gray-300"
+              }`}
+            >
+              আমার অর্ডার
+            </button>
+          </div>
+
+          {/* Tab content */}
+          {activeTab === "priceTrends" && (
+            <div className="bg-white p-6 rounded shadow">
+              <h2 className="text-xl font-bold text-red-700 mb-2">Price History - Last 7 Days</h2>
+              <p className="text-gray-600 mb-4">
+                Track how prices have changed over time for your favorite items
+              </p>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={priceData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#fecaca" />
+                    <XAxis dataKey="date" stroke="#dc2626" />
+                    <YAxis stroke="#dc2626" />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "white",
+                        border: "1px solid #fecaca",
+                        borderRadius: "8px",
+                      }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="onion"
+                      stroke="#dc2626"
+                      strokeWidth={3}
+                      name="Onion (৳/kg)"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="potato"
+                      stroke="#ea580c"
+                      strokeWidth={3}
+                      name="Potato (৳/kg)"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="tomato"
+                      stroke="#f97316"
+                      strokeWidth={3}
+                      name="Tomato (৳/kg)"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
+          )}
 
-            <div className="grid gap-6 md:grid-cols-2">
-                {/* Bar Chart Card */}
-                <div className="border rounded-xl shadow-sm bg-white">
-                    <div className="p-4 border-b">
-                        <h2 className="text-lg font-semibold">Monthly Price Comparison</h2>
-                        <p className="text-sm text-gray-500">Bar chart showing price trends</p>
-                    </div>
-                    <div className="p-4 h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={priceData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="month" />
-                                <YAxis />
-                                <Tooltip />
-                                <Bar dataKey="tomatoes" fill="#ef4444" />
-                                <Bar dataKey="onions" fill="#f59e0b" />
-                                <Bar dataKey="potatoes" fill="#10b981" />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
-                {/* Line Chart Card */}
-                <div className="border rounded-xl shadow-sm bg-white">
-                    <div className="p-4 border-b">
-                        <h2 className="text-lg font-semibold">Price Trend Lines</h2>
-                        <p className="text-sm text-gray-500">Line chart showing price movements</p>
-                    </div>
-                    <div className="p-4 h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={priceData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="month" />
-                                <YAxis />
-                                <Tooltip />
-                                <Line
-                                    type="monotone"
-                                    dataKey="tomatoes"
-                                    stroke="#ef4444"
-                                    strokeWidth={2}
-                                />
-                                <Line
-                                    type="monotone"
-                                    dataKey="onions"
-                                    stroke="#f59e0b"
-                                    strokeWidth={2}
-                                />
-                                <Line
-                                    type="monotone"
-                                    dataKey="potatoes"
-                                    stroke="#10b981"
-                                    strokeWidth={2}
-                                />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
+          {activeTab === "watchlist" && (
+            <div className="bg-white p-6 rounded shadow">
+              <h2 className="text-xl font-bold text-red-700 mb-4">My Watchlist</h2>
+              <table className="w-full text-left border border-gray-200">
+                <thead>
+                  <tr className="bg-red-100">
+                    <th className="px-4 py-2 border-b">Product</th>
+                    <th className="px-4 py-2 border-b">Price (৳)</th>
+                    <th className="px-4 py-2 border-b">Unit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {watchlistData.map((item) => (
+                    <tr key={item.id} className="hover:bg-red-50">
+                      <td className="px-4 py-2 border-b">{item.product}</td>
+                      <td className="px-4 py-2 border-b">{item.price}</td>
+                      <td className="px-4 py-2 border-b">{item.unit}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-        </div>
-    );
-};
+          )}
 
-export default DashbordHome;
+          {activeTab === "myOrders" && (
+            <div className="bg-white p-6 rounded shadow">
+              <h2 className="text-xl font-bold text-red-700 mb-4">My Orders</h2>
+              <table className="w-full text-left border border-gray-200">
+                <thead>
+                  <tr className="bg-red-100">
+                    <th className="px-4 py-2 border-b">Market</th>
+                    <th className="px-4 py-2 border-b">Date</th>
+                    <th className="px-4 py-2 border-b">Total Price (৳)</th>
+                    <th className="px-4 py-2 border-b">Payment Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ordersData.map((order) => (
+                    <tr key={order.id} className="hover:bg-red-50">
+                      <td className="px-4 py-2 border-b">{order.marketName}</td>
+                      <td className="px-4 py-2 border-b">{order.date}</td>
+                      <td className="px-4 py-2 border-b">{order.totalPrice}</td>
+                      <td className="px-4 py-2 border-b capitalize">{order.payment_status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </motion.div>
+      </div>
+    </div>
+  )
+}
+
+export default DashboardHome

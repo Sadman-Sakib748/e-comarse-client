@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Clock, MapPin, Star, ArrowRight } from "lucide-react";
 import { Link } from "react-router"; // ✅ If using react-router-dom, use: import { Link } from "react-router-dom"
 import useAxiousSecure from "../../hooks/useAxiousSecure";
+import Spinner from "../Spinner/Spinner";
 
 
 const TodayProducts = () => {
@@ -21,16 +22,12 @@ const TodayProducts = () => {
   });
 
   if (isLoading) {
-    return (
-      <div className="py-16 text-center text-gray-500 font-semibold">
-        Loading today's market data...
-      </div>
-    );
+    return <Spinner />;
   }
 
   if (isError) {
     return (
-      <div className="py-16 text-center text-red-500 font-semibold">
+      <div className="py-16 text-center text-red-500 font-semibold ">
         Failed to load market data.
       </div>
     );

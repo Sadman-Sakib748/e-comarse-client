@@ -3,6 +3,7 @@ import useAxiousSecure from '../../../hooks/useAxiousSecure';
 import useAuth from '../../../hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
+import Spinner from '../../Spinner/Spinner';
 
 const PaymentHistory = () => {
   const { user, loading } = useAuth(); // Add loading if available from context
@@ -21,7 +22,7 @@ const PaymentHistory = () => {
   });
 
   if (loading || isPending || !user?.email) {
-    return <p className="text-center text-gray-500">Loading...</p>;
+    return  <Spinner /> ;
   }
 
   return (
