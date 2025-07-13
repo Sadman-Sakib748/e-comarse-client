@@ -12,7 +12,7 @@ import {
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
-import { Link } from "react-router"; // Link ঠিক ইমপোর্ট করলাম
+import { Link } from "react-router";
 
 const fetchOffers = async () => {
   const res = await axios.get(`http://localhost:5000/offers`);
@@ -31,26 +31,6 @@ const Offers = () => {
     queryFn: fetchOffers,
   });
 
-  const t = {
-    offerDetails: "Offer Details",
-    validUntil: "Valid Until",
-    vendor: "Vendor",
-    location: "Location",
-    contact: "Contact",
-    originalPrice: "Original Price",
-    discountedPrice: "Discounted Price",
-    youSave: "You Save",
-    termsConditions: "Terms & Conditions",
-    howToClaim: "How to Claim",
-    claimOffer: "Claim Offer",
-    addToFavorites: "Add to Favorites",
-    shareOffer: "Share Offer",
-    backToOffers: "Back to All Offers",
-    offerExpired: "Offer Expired",
-    offerActive: "Offer Active",
-    viewOffer: "View",
-  };
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -67,7 +47,7 @@ const Offers = () => {
   }
 
   const handleClaimOffer = (offer) => {
-    alert(`${t.claimOffer}: ${offer.title}`);
+    alert(`Claim Offer: ${offer.title}`);
   };
 
   const handleToggleFavorite = (id) => {
@@ -128,31 +108,48 @@ const Offers = () => {
                 ) : (
                   <AlertCircle className="w-4 h-4" />
                 )}
-                {offer.isActive ? t.offerActive : t.offerExpired}
+                {offer.isActive ? "Offer Active" : "Offer Expired"}
               </div>
             </div>
 
             <div className="p-4 flex flex-col flex-grow">
               <h2 className="text-lg font-semibold mb-1">{offer.title}</h2>
-              <p className="text-gray-700 mb-3 line-clamp-3 flex-grow">{offer.description}</p>
+              <p className="text-gray-700 mb-3 line-clamp-3 flex-grow">
+                {offer.description}
+              </p>
 
+              {/* Price Section */}
               <div className="mb-3 space-y-1 text-sm">
                 <p>
-                  <span className="font-semibold text-gray-600">{t.originalPrice}:</span>
-                  <span className="line-through ml-2">৳{offer.originalPrice}</span>
+                  <span className="font-semibold text-gray-600">Original Price:</span>{" "}
+                  {offer.originalPrice !== undefined && offer.originalPrice !== null ? (
+                    <span className="line-through ml-2">৳{offer.originalPrice}</span>
+                  ) : (
+                    <span className="text-gray-400 italic ml-2">N/A</span>
+                  )}
                 </p>
                 <p>
-                  <span className="font-semibold text-gray-600">{t.discountedPrice}:</span>
-                  <span className="ml-2 text-red-600 font-bold">৳{offer.discountedPrice}</span>
+                  <span className="font-semibold text-gray-600">Discounted Price:</span>{" "}
+                  {offer.discountedPrice !== undefined && offer.discountedPrice !== null ? (
+                    <span className="ml-2 text-red-600 font-bold">৳{offer.discountedPrice}</span>
+                  ) : (
+                    <span className="text-gray-400 italic ml-2">N/A</span>
+                  )}
                 </p>
                 <p>
-                  <span className="font-semibold text-green-600">{t.youSave}:</span>
-                  <span className="ml-2">৳{offer.originalPrice - offer.discountedPrice}</span>
+                  <span className="font-semibold text-green-600">You Save:</span>{" "}
+                  {offer.originalPrice !== undefined &&
+                  offer.discountedPrice !== undefined &&
+                  offer.originalPrice > offer.discountedPrice ? (
+                    <span className="ml-2">৳{offer.originalPrice - offer.discountedPrice}</span>
+                  ) : (
+                    <span className="text-gray-400 italic ml-2">N/A</span>
+                  )}
                 </p>
               </div>
 
               <div className="mb-3 text-xs max-h-20 overflow-y-auto text-gray-700">
-                <h3 className="font-semibold text-red-700">{t.termsConditions}</h3>
+                <h3 className="font-semibold text-red-700">Terms & Conditions</h3>
                 <ul className="list-disc pl-5">
                   {(offer.termsConditions || []).map((term, index) => (
                     <li key={index}>{term}</li>
@@ -161,7 +158,7 @@ const Offers = () => {
               </div>
 
               <div className="mb-4 text-xs max-h-20 overflow-y-auto text-gray-700">
-                <h3 className="font-semibold text-red-700">{t.howToClaim}</h3>
+                <h3 className="font-semibold text-red-700">How to Claim</h3>
                 <ol className="list-decimal pl-5">
                   {(offer.howToClaim || []).map((step, index) => (
                     <li key={index}>{step}</li>
@@ -175,7 +172,7 @@ const Offers = () => {
                     onClick={() => handleClaimOffer(offer)}
                     className="flex items-center gap-1 bg-red-600 text-white px-2 py-1 rounded shadow hover:bg-red-700 transition text-xs"
                   >
-                    <Gift className="w-4 h-4" /> {t.claimOffer}
+                    <Gift className="w-4 h-4" /> Claim Offer
                   </button>
                   <button
                     onClick={() => handleToggleFavorite(offer._id)}
@@ -185,13 +182,13 @@ const Offers = () => {
                         : "bg-white"
                     }`}
                   >
-                    <Heart className="w-4 h-4" /> {t.addToFavorites}
+                    <Heart className="w-4 h-4" /> Add to Favorites
                   </button>
                   <button
                     onClick={() => handleShareOffer(offer)}
                     className="flex items-center gap-1 border px-2 py-1 rounded bg-white hover:bg-gray-100 transition text-xs"
                   >
-                    <Share2 className="w-4 h-4" /> {t.shareOffer}
+                    <Share2 className="w-4 h-4" /> Share Offer
                   </button>
                 </div>
                 <div>
@@ -199,7 +196,7 @@ const Offers = () => {
                     to={`/advertisement/${offer._id}`}
                     className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-semibold transition"
                   >
-                    {t.viewOffer}
+                    View
                   </Link>
                 </div>
               </div>

@@ -9,27 +9,11 @@ const MyAdvertisements = () => {
   const axiosSecure = useAxiosSecure();
 
   const [editingAd, setEditingAd] = useState(null);
-  const [deletingAd, setDeletingAd] = useState(null); // for delete modal
+  const [deletingAd, setDeletingAd] = useState(null);
 
-  // fetch function using axiosSecure
   const fetchAds = async () => {
     const res = await axiosSecure.get('/offers');
     return res.data;
-  };
-
-  // actual delete function called after confirmation
-  const deleteAd = async (id) => {
-    try {
-      const res = await axiosSecure.delete(`/offers/${id}`);
-      if (res.data.success) {
-        toast.success("Ad deleted successfully");
-      } else {
-        toast.error(res.data.message || "Failed to delete ad");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Server error while deleting ad");
-    }
   };
 
   const {
@@ -41,6 +25,21 @@ const MyAdvertisements = () => {
     queryKey: ['vendor-ads'],
     queryFn: fetchAds,
   });
+
+  const deleteAd = async (id) => {
+    try {
+      const res = await axiosSecure.delete(`/offers/${id}`);
+      if (res.data.success) {
+        toast.success("Ad deleted successfully");
+        refetch();
+      } else {
+        toast.error(res.data.message || "Failed to delete ad");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Server error while deleting ad");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -55,7 +54,6 @@ const MyAdvertisements = () => {
     return <p className="text-center text-red-600 py-6">Error loading advertisements.</p>;
   }
 
-  // Confirm Delete modal UI
   const DeleteConfirmModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white rounded-lg shadow p-6 max-w-sm w-full">
@@ -73,7 +71,6 @@ const MyAdvertisements = () => {
             onClick={async () => {
               await deleteAd(deletingAd._id);
               setDeletingAd(null);
-              refetch();
             }}
           >
             Delete
@@ -148,7 +145,6 @@ const MyAdvertisements = () => {
         </tbody>
       </table>
 
-      {/* Edit Modal */}
       {editingAd && (
         <EditAdModal
           ad={editingAd}
@@ -161,7 +157,6 @@ const MyAdvertisements = () => {
         />
       )}
 
-      {/* Delete Confirmation Modal */}
       {deletingAd && <DeleteConfirmModal />}
     </div>
   );

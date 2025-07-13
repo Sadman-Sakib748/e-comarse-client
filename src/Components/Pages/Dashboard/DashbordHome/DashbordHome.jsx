@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion } from "framer-motion"
+import { useState } from "react";
+import { motion } from "framer-motion";
 import {
   LineChart,
   Line,
@@ -10,35 +10,32 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from "recharts"
-import { useQuery } from "@tanstack/react-query"
-import useAuth from "../../../hooks/useAuth"
+} from "recharts";
+import { useQuery } from "@tanstack/react-query";
+import useAuth from "../../../hooks/useAuth";
 
-// ====== API Functions ======
 const fetchProducts = async () => {
-  const res = await fetch("http://localhost:5000/product")
-  if (!res.ok) throw new Error("Failed to fetch products")
-  return res.json()
-}
+  const res = await fetch("http://localhost:5000/product");
+  if (!res.ok) throw new Error("Failed to fetch products");
+  return res.json();
+};
 
 const fetchWatchlist = async () => {
-  const res = await fetch("http://localhost:5000/watchlist")
-  if (!res.ok) throw new Error("Failed to fetch watchlist")
-  return res.json()
-}
+  const res = await fetch("http://localhost:5000/watchlist");
+  if (!res.ok) throw new Error("Failed to fetch watchlist");
+  return res.json();
+};
 
 const fetchOrders = async (email) => {
-  const res = await fetch(`http://localhost:5000/orders/${email}`)
-  if (!res.ok) throw new Error("Failed to fetch orders")
-  return res.json()
-}
+  const res = await fetch(`http://localhost:5000/orders/${email}`);
+  if (!res.ok) throw new Error("Failed to fetch orders");
+  return res.json();
+};
 
-// ====== Main Component ======
 const DashboardHome = () => {
-  const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState("priceTrends")
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("priceTrends");
 
-  // Fetch product data (for chart)
   const {
     data: productData = [],
     isLoading: loadingProducts,
@@ -47,51 +44,54 @@ const DashboardHome = () => {
   } = useQuery({
     queryKey: ["products"],
     queryFn: fetchProducts,
-  })
+  });
 
-  // Fetch watchlist
   const { data: watchlist = [], isLoading: loadingWatchlist } = useQuery({
     queryKey: ["watchlist"],
     queryFn: fetchWatchlist,
-  })
+  });
 
-  // Fetch orders
   const { data: orders = [], isLoading: loadingOrders } = useQuery({
     queryKey: ["myOrders", user?.email],
     queryFn: () => fetchOrders(user.email),
     enabled: !!user?.email,
-  })
+  });
 
-  // Prepare chart data
   const priceData =
     productData.length > 0
       ? productData.map((entry) => {
-          const onion = entry.items.find((i) => i.name.toLowerCase() === "onion")
-          const potato = entry.items.find((i) => i.name.toLowerCase() === "potato")
-          const tomato = entry.items.find((i) => i.name.toLowerCase() === "tomato")
+          const onion = entry.items.find(
+            (i) => i.name.toLowerCase() === "onion"
+          );
+          const potato = entry.items.find(
+            (i) => i.name.toLowerCase() === "potato"
+          );
+          const tomato = entry.items.find(
+            (i) => i.name.toLowerCase() === "tomato"
+          );
 
           return {
             date: entry.date,
             onion: onion ? Number(onion.price) : 0,
             potato: potato ? Number(potato.price) : 0,
             tomato: tomato ? Number(tomato.price) : 0,
-          }
+          };
         })
-      : [{ date: "2025-01-01", onion: 0, potato: 0, tomato: 0 }]
+      : [{ date: "2025-01-01", onion: 0, potato: 0, tomato: 0 }];
 
   if (loadingProducts)
     return (
       <div className="min-h-screen flex justify-center items-center text-xl font-semibold">
         Loading...
       </div>
-    )
+    );
 
   if (errorProducts)
     return (
       <div className="min-h-screen flex justify-center items-center text-xl font-semibold text-red-600">
         Error: {productError.message}
       </div>
-    )
+    );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 py-8">
@@ -107,21 +107,21 @@ const DashboardHome = () => {
 
           {/* Tabs */}
           <div className="flex gap-4 mb-6">
-            {["priceTrends", "watchlist", "myOrders"].map((tab) => (
+            {[
+              { id: "priceTrends", label: "দাম ট্রেন্ড" },
+              { id: "watchlist", label: "ওয়াচলিস্ট" },
+              { id: "myOrders", label: "আমার অর্ডার" },
+            ].map((tab) => (
               <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
                 className={`px-4 py-2 rounded font-semibold ${
-                  activeTab === tab
+                  activeTab === tab.id
                     ? "bg-red-500 text-white"
                     : "bg-white border border-gray-300"
                 }`}
               >
-                {tab === "priceTrends"
-                  ? "দাম ট্রেন্ড"
-                  : tab === "watchlist"
-                  ? "ওয়াচলিস্ট"
-                  : "আমার অর্ডার"}
+                {tab.label}
               </button>
             ))}
           </div>
@@ -129,7 +129,9 @@ const DashboardHome = () => {
           {/* Tab Contents */}
           {activeTab === "priceTrends" && (
             <div className="bg-white p-6 rounded shadow">
-              <h2 className="text-xl font-bold text-red-700 mb-2">Price History - Last 7 Days</h2>
+              <h2 className="text-xl font-bold text-red-700 mb-2">
+                Price History - Last 7 Days
+              </h2>
               <p className="text-gray-600 mb-4">
                 Track how prices have changed over time for your favorite items
               </p>
@@ -146,9 +148,27 @@ const DashboardHome = () => {
                         borderRadius: "8px",
                       }}
                     />
-                    <Line type="monotone" dataKey="onion" stroke="#dc2626" strokeWidth={3} name="Onion (৳/kg)" />
-                    <Line type="monotone" dataKey="potato" stroke="#ea580c" strokeWidth={3} name="Potato (৳/kg)" />
-                    <Line type="monotone" dataKey="tomato" stroke="#f97316" strokeWidth={3} name="Tomato (৳/kg)" />
+                    <Line
+                      type="monotone"
+                      dataKey="onion"
+                      stroke="#dc2626"
+                      strokeWidth={3}
+                      name="Onion (৳/kg)"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="potato"
+                      stroke="#ea580c"
+                      strokeWidth={3}
+                      name="Potato (৳/kg)"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="tomato"
+                      stroke="#f97316"
+                      strokeWidth={3}
+                      name="Tomato (৳/kg)"
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -219,7 +239,7 @@ const DashboardHome = () => {
         </motion.div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default DashboardHome
+export default DashboardHome;

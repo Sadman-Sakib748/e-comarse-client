@@ -1,27 +1,53 @@
-import React from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Clock, MapPin, Star, ArrowRight } from "lucide-react";
-import { Link } from "react-router"; // changed to react-router-dom
-import axios from "axios";
+import { Link } from "react-router";
 import Spinner from "../Spinner/Spinner";
+import useAxiosSecure from "../../hooks/useAxiousSecure";
 
-// API fetch function
-const fetchTodayProducts = async () => {
-  const res = await axios.get("http://localhost:5000/product");
+// ✅ Fetch function (axiosSecure passed through meta)
+const fetchFilteredProducts = async ({ queryKey, meta }) => {
+  const [, sort, startDate, endDate] = queryKey;
+  const axiosSecure = meta.axiosSecure;
+
+  const params = new URLSearchParams();
+  if (sort) params.append("sort", sort);
+  if (startDate) params.append("startDate", startDate);
+  if (endDate) params.append("endDate", endDate);
+
+  const res = await axiosSecure.get(`/product?${params.toString()}`);
   return res.data;
 };
 
 const BrowseAll = () => {
-  const { data: todayProducts = [], isLoading, isError } = useQuery({
-    queryKey: ["todayProducts"],
-    queryFn: fetchTodayProducts,
+  const axiosSecure = useAxiosSecure();
+  const [sort, setSort] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const {
+    data: todayProducts = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["todayProducts", sort, startDate, endDate],
+    queryFn: fetchFilteredProducts,
+    meta: { axiosSecure },
+    keepPreviousData: true,
   });
 
-  if (isLoading) {
-    return <Spinner />;
-  }
+  const handleSortChange = (e) => setSort(e.target.value);
+  const handleStartDateChange = (e) => {
+    console.log("Start Date:", e.target.value);
+    setStartDate(e.target.value);
+  };
+  const handleEndDateChange = (e) => {
+    console.log("End Date:", e.target.value);
+    setEndDate(e.target.value);
+  };
 
+  if (isLoading) return <Spinner />;
   if (isError) {
     return (
       <div className="py-16 text-center text-red-500 font-semibold">
@@ -52,13 +78,44 @@ const BrowseAll = () => {
           </p>
         </motion.div>
 
+        {/* Filter & Sort Controls */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-10">
+          <div className="flex gap-3 items-center">
+            <label className="font-medium text-gray-600">Sort:</label>
+            <select
+              value={sort}
+              onChange={handleSortChange}
+              className="border rounded px-3 py-1 text-sm"
+            >
+              <option value="">Default</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+            </select>
+          </div>
+          <div className="flex gap-3 items-center">
+            <label className="font-medium text-gray-600">Date:</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={handleStartDateChange}
+              className="border rounded px-3 py-1 text-sm"
+            />
+            <span className="text-gray-500">to</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={handleEndDateChange}
+              className="border rounded px-3 py-1 text-sm"
+            />
+          </div>
+        </div>
+
         {/* Products */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {Array.isArray(todayProducts) &&
-            todayProducts.length > 0 ? (
+          {Array.isArray(todayProducts) && todayProducts.length > 0 ? (
             todayProducts.map((product, index) => (
               <motion.div
-                key={product.id || product._id || index}
+                key={product._id || index}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 + index * 0.1, duration: 0.6 }}
@@ -93,10 +150,10 @@ const BrowseAll = () => {
                           <span>{item.name}</span>
                           <span
                             className={`text-xs px-2 py-0.5 rounded-full ${item.change.startsWith("+")
-                                ? "bg-red-100 text-red-600"
-                                : item.change.startsWith("-")
-                                  ? "bg-green-100 text-green-600"
-                                  : "bg-gray-200 text-gray-600"
+                              ? "bg-red-100 text-red-600"
+                              : item.change.startsWith("-")
+                                ? "bg-green-100 text-green-600"
+                                : "bg-gray-200 text-gray-600"
                               }`}
                           >
                             {item.change}
@@ -111,7 +168,7 @@ const BrowseAll = () => {
                   </div>
                   <div className="flex justify-between items-center border-t pt-3 text-sm text-gray-600">
                     <span>{product.vendor}</span>
-                    <Link to={`/products/${product.id || product._id}`}>
+                    <Link to={`/products/${product._id}`}>
                       <button className="flex items-center text-white bg-red-600 px-3 py-1.5 rounded hover:bg-red-700">
                         View Details <ArrowRight className="ml-1 h-4 w-4" />
                       </button>
@@ -121,7 +178,7 @@ const BrowseAll = () => {
               </motion.div>
             ))
           ) : (
-            <p className="text-center text-gray-500">No products available today.</p>
+            <p className="text-center text-gray-500">No products available.</p>
           )}
         </div>
       </div>
