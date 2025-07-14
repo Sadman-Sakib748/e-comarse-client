@@ -13,27 +13,11 @@ import {
 } from "recharts";
 import { useQuery } from "@tanstack/react-query";
 import useAuth from "../../../hooks/useAuth";
-
-const fetchProducts = async () => {
-  const res = await fetch("http://localhost:5000/product");
-  if (!res.ok) throw new Error("Failed to fetch products");
-  return res.json();
-};
-
-const fetchWatchlist = async () => {
-  const res = await fetch("http://localhost:5000/watchlist");
-  if (!res.ok) throw new Error("Failed to fetch watchlist");
-  return res.json();
-};
-
-const fetchOrders = async (email) => {
-  const res = await fetch(`http://localhost:5000/orders/${email}`);
-  if (!res.ok) throw new Error("Failed to fetch orders");
-  return res.json();
-};
+import useAxiosSecure from "../../../hooks/useAxiousSecure";
 
 const DashboardHome = () => {
   const { user } = useAuth();
+  const axiosSecure = useAxiosSecure();
   const [activeTab, setActiveTab] = useState("priceTrends");
 
   const {
@@ -43,40 +27,57 @@ const DashboardHome = () => {
     error: productError,
   } = useQuery({
     queryKey: ["products"],
-    queryFn: fetchProducts,
+    queryFn: async () => {
+      const res = await axiosSecure.get("/product");
+      return res.data;
+    },
   });
 
-  const { data: watchlist = [], isLoading: loadingWatchlist } = useQuery({
-    queryKey: ["watchlist"],
-    queryFn: fetchWatchlist,
+  const {
+    data: watchlist = [],
+    isLoading: loadingWatchlist,
+    isError: watchlistError,
+  } = useQuery({
+    queryKey: ["watchlist", user?.email],
+    queryFn: async () => {
+      const res = await axiosSecure.get(`/watchlist?email=${user?.email}`);
+      return res.data;
+    },
+    enabled: !!user?.email,
   });
 
-  const { data: orders = [], isLoading: loadingOrders } = useQuery({
+  const {
+    data: orders = [],
+    isLoading: loadingOrders,
+  } = useQuery({
     queryKey: ["myOrders", user?.email],
-    queryFn: () => fetchOrders(user.email),
+    queryFn: async () => {
+      const res = await axiosSecure.get(`/orders/${user?.email}`);
+      return res.data;
+    },
     enabled: !!user?.email,
   });
 
   const priceData =
     productData.length > 0
       ? productData.map((entry) => {
-          const onion = entry.items.find(
-            (i) => i.name.toLowerCase() === "onion"
-          );
-          const potato = entry.items.find(
-            (i) => i.name.toLowerCase() === "potato"
-          );
-          const tomato = entry.items.find(
-            (i) => i.name.toLowerCase() === "tomato"
-          );
+        const onion = entry.items.find(
+          (i) => i.name.toLowerCase() === "onion"
+        );
+        const potato = entry.items.find(
+          (i) => i.name.toLowerCase() === "potato"
+        );
+        const tomato = entry.items.find(
+          (i) => i.name.toLowerCase() === "tomato"
+        );
 
-          return {
-            date: entry.date,
-            onion: onion ? Number(onion.price) : 0,
-            potato: potato ? Number(potato.price) : 0,
-            tomato: tomato ? Number(tomato.price) : 0,
-          };
-        })
+        return {
+          date: entry.date,
+          onion: onion ? Number(onion.price) : 0,
+          potato: potato ? Number(potato.price) : 0,
+          tomato: tomato ? Number(tomato.price) : 0,
+        };
+      })
       : [{ date: "2025-01-01", onion: 0, potato: 0, tomato: 0 }];
 
   if (loadingProducts)
@@ -115,11 +116,10 @@ const DashboardHome = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded font-semibold ${
-                  activeTab === tab.id
+                className={`px-4 py-2 rounded font-semibold ${activeTab === tab.id
                     ? "bg-red-500 text-white"
                     : "bg-white border border-gray-300"
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>
@@ -186,17 +186,19 @@ const DashboardHome = () => {
                 <table className="w-full text-left border border-gray-200">
                   <thead>
                     <tr className="bg-red-100">
-                      <th className="px-4 py-2 border-b">Product</th>
-                      <th className="px-4 py-2 border-b">Price (৳)</th>
-                      <th className="px-4 py-2 border-b">Unit</th>
+                      <th className="px-4 py-2 border-b">Market</th>
+                      <th className="px-4 py-2 border-b">Vendor</th>
+                      <th className="px-4 py-2 border-b">Date</th>
+                      <th className="px-4 py-2 border-b">Total Price (৳)</th>
                     </tr>
                   </thead>
                   <tbody>
                     {watchlist.map((item) => (
                       <tr key={item._id} className="hover:bg-red-50">
-                        <td className="px-4 py-2 border-b">{item.product}</td>
-                        <td className="px-4 py-2 border-b">{item.price}</td>
-                        <td className="px-4 py-2 border-b">{item.unit}</td>
+                        <td className="px-4 py-2 border-b">{item.marketName}</td>
+                        <td className="px-4 py-2 border-b">{item.vendor}</td>
+                        <td className="px-4 py-2 border-b">{item.date}</td>
+                        <td className="px-4 py-2 border-b">{item.totalPrice}</td>
                       </tr>
                     ))}
                   </tbody>

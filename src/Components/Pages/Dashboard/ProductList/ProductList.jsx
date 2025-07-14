@@ -1,4 +1,3 @@
-import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import useAuth from '../../../hooks/useAuth';
 import { useNavigate } from 'react-router';
@@ -75,10 +74,11 @@ const ProductList = () => {
                     <button
                       onClick={() => handlePayment(item)}
                       disabled={item.payment_status === 'paid'}
-                      className={`px-4 py-2 rounded-md shadow-sm transition duration-200 ${item.payment_status === 'paid'
-                        ? 'bg-gray-400 cursor-not-allowed text-white'
-                        : 'bg-blue-600 hover:bg-blue-700 text-white'
-                        }`}
+                      className={`px-4 py-2 rounded-md shadow-sm transition duration-200 ${
+                        item.payment_status === 'paid'
+                          ? 'bg-gray-400 cursor-not-allowed text-white'
+                          : 'bg-blue-600 hover:bg-blue-700 text-white'
+                      }`}
                     >
                       {item.payment_status === 'paid' ? 'Paid' : 'Pay Now'}
                     </button>

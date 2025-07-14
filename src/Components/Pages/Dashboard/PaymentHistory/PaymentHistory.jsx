@@ -22,7 +22,7 @@ const PaymentHistory = () => {
   });
 
   if (loading || isPending || !user?.email) {
-    return  <Spinner /> ;
+    return <Spinner />;
   }
 
   return (
