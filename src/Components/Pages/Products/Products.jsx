@@ -7,6 +7,7 @@ import ConfirmDeleteModal from '../ConfirmDeleteModal/ConfirmDeleteModal';
 
 const Products = () => {
   const product = useLoaderData();
+  console.log('my data ', product)
   const axiosSecure = useAxiosSecure();
   const { user } = useAuth();
 
@@ -149,9 +150,10 @@ const Products = () => {
       <h1 className="text-3xl font-bold mb-4">{product.marketName}</h1>
       <p className="text-gray-600 mb-2"><strong>Location:</strong> {product.location}</p>
       <p className="text-gray-600 mb-2"><strong>Date:</strong> {product.date}</p>
-      <p className="text-gray-600 mb-2"><strong>Vendor:</strong> {product.vendor}</p>
+      <p className="text-gray-600 mb-2"><strong>Vendor:</strong> {product.vendorName}</p>
+      <p className="text-gray-600 mb-2"><strong>Vendor-Email:</strong> {product.vendorEmail}</p>
       <p className="text-gray-600 mb-2"><strong>Rating:</strong> {product.rating} ⭐</p>
-      <p className="text-gray-600 mb-4"><strong>Total Vendors:</strong> {product.totalVendors}</p>
+      <p className="text-gray-600 mb-4"><strong>Description</strong> {product.marketDescription}</p>
 
       <img src={product.image} alt={product.marketName} className="w-full max-h-64 object-cover rounded mb-6" />
 

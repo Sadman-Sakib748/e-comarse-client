@@ -20,10 +20,10 @@ const DashboardHome = () => {
   const axiosSecure = useAxiosSecure();
   const [activeTab, setActiveTab] = useState("priceTrends");
 
+  // ✅ Load Products for Price Trends
   const {
     data: productData = [],
     isLoading: loadingProducts,
-    isError: errorProducts,
     error: productError,
   } = useQuery({
     queryKey: ["products"],
@@ -33,10 +33,10 @@ const DashboardHome = () => {
     },
   });
 
+  // ✅ Load Watchlist
   const {
     data: watchlist = [],
     isLoading: loadingWatchlist,
-    isError: watchlistError,
   } = useQuery({
     queryKey: ["watchlist", user?.email],
     queryFn: async () => {
@@ -46,6 +46,7 @@ const DashboardHome = () => {
     enabled: !!user?.email,
   });
 
+  // ✅ Load My Orders
   const {
     data: orders = [],
     isLoading: loadingOrders,
@@ -58,41 +59,40 @@ const DashboardHome = () => {
     enabled: !!user?.email,
   });
 
-  const priceData =
-    productData.length > 0
-      ? productData.map((entry) => {
-        const onion = entry.items.find(
-          (i) => i.name.toLowerCase() === "onion"
-        );
-        const potato = entry.items.find(
-          (i) => i.name.toLowerCase() === "potato"
-        );
-        const tomato = entry.items.find(
-          (i) => i.name.toLowerCase() === "tomato"
-        );
+  // ✅ Format Price Chart Data
+  const priceData = productData
+    .slice()
+    .reverse()
+    .slice(0, 7) // last 7 entries
+    .map((entry) => {
+      const onion = entry.items.find((i) => i.name.toLowerCase() === "onion");
+      const potato = entry.items.find((i) => i.name.toLowerCase() === "potato");
+      const tomato = entry.items.find((i) => i.name.toLowerCase() === "tomato");
 
-        return {
-          date: entry.date,
-          onion: onion ? Number(onion.price) : 0,
-          potato: potato ? Number(potato.price) : 0,
-          tomato: tomato ? Number(tomato.price) : 0,
-        };
-      })
-      : [{ date: "2025-01-01", onion: 0, potato: 0, tomato: 0 }];
+      return {
+        date: entry.date,
+        onion: onion ? Number(onion.price) : 0,
+        potato: potato ? Number(potato.price) : 0,
+        tomato: tomato ? Number(tomato.price) : 0,
+      };
+    });
 
-  if (loadingProducts)
+  // ✅ Loading/Error States
+  if (loadingProducts || loadingOrders) {
     return (
       <div className="min-h-screen flex justify-center items-center text-xl font-semibold">
         Loading...
       </div>
     );
+  }
 
-  if (errorProducts)
+  if (productError) {
     return (
       <div className="min-h-screen flex justify-center items-center text-xl font-semibold text-red-600">
         Error: {productError.message}
       </div>
     );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 py-8">
@@ -117,8 +117,8 @@ const DashboardHome = () => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-4 py-2 rounded font-semibold ${activeTab === tab.id
-                    ? "bg-red-500 text-white"
-                    : "bg-white border border-gray-300"
+                  ? "bg-red-500 text-white"
+                  : "bg-white border border-gray-300"
                   }`}
               >
                 {tab.label}
@@ -132,9 +132,6 @@ const DashboardHome = () => {
               <h2 className="text-xl font-bold text-red-700 mb-2">
                 Price History - Last 7 Days
               </h2>
-              <p className="text-gray-600 mb-4">
-                Track how prices have changed over time for your favorite items
-              </p>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={priceData}>
@@ -148,27 +145,9 @@ const DashboardHome = () => {
                         borderRadius: "8px",
                       }}
                     />
-                    <Line
-                      type="monotone"
-                      dataKey="onion"
-                      stroke="#dc2626"
-                      strokeWidth={3}
-                      name="Onion (৳/kg)"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="potato"
-                      stroke="#ea580c"
-                      strokeWidth={3}
-                      name="Potato (৳/kg)"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="tomato"
-                      stroke="#f97316"
-                      strokeWidth={3}
-                      name="Tomato (৳/kg)"
-                    />
+                    <Line type="monotone" dataKey="onion" stroke="#dc2626" strokeWidth={3} name="Onion (৳/kg)" />
+                    <Line type="monotone" dataKey="potato" stroke="#ea580c" strokeWidth={3} name="Potato (৳/kg)" />
+                    <Line type="monotone" dataKey="tomato" stroke="#f97316" strokeWidth={3} name="Tomato (৳/kg)" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>

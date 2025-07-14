@@ -6,13 +6,9 @@ import { toast } from "react-hot-toast";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [language, setLanguage] = useState("en"); // language toggle still present, but only English text now
   const { user, logOut } = useAuth();
 
-  const toggleLanguage = () => {
-    // You can disable or remove this if you want to only keep English
-    setLanguage(language === "en" ? "en" : "en");
-  };
+ 
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -126,17 +122,6 @@ const Navbar = () => {
           <ul className="hidden md:flex items-center space-x-8 text-sm font-medium">
             {navLinks}
 
-            {/* Language Toggle */}
-            <li>
-              <button
-                onClick={toggleLanguage}
-                className="flex items-center gap-2 border border-red-200 hover:bg-red-50 bg-transparent rounded px-3 py-1 text-sm text-red-600"
-                aria-label="Toggle language"
-              >
-                <Globe className="h-4 w-4" />
-                EN
-              </button>
-            </li>
 
             {/* User Menu */}
             {user ? (
@@ -201,19 +186,6 @@ const Navbar = () => {
               <ul className="flex flex-col space-y-2 text-sm font-medium">
                 {navLinks}
 
-                {/* Language Toggle */}
-                <li>
-                  <button
-                    onClick={() => {
-                      toggleLanguage();
-                      setIsOpen(false);
-                    }}
-                    className="flex items-center gap-2 border border-red-200 hover:bg-red-50 bg-transparent rounded px-3 py-1 text-sm text-red-600 w-full"
-                  >
-                    <Globe className="h-4 w-4" />
-                    EN
-                  </button>
-                </li>
 
                 {/* User Menu */}
                 {user ? (

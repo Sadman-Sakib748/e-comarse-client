@@ -18,7 +18,8 @@ const ProductCreate = ({ onProductAdded }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState(defaultItems);
-
+  const [vendorName, setVendorName] = useState(user?.displayName || "");
+console.log(vendorName, 'name')
   const handleItemChange = (index, field, value) => {
     const updated = [...items];
     updated[index][field] = value;
@@ -35,15 +36,16 @@ const ProductCreate = ({ onProductAdded }) => {
     const image = form.image.value;
     const itemDescription = form.itemDescription.value;
 
-    const validItems = items.filter((item) => item.price); // only items with price
-    const pricePerUnit = parseFloat(validItems[0]?.price || 0); // default price for `prices`
+    const validItems = items.filter((item) => item.price);
+    const pricePerUnit = parseFloat(validItems[0]?.price || 0);
 
     const product = {
       vendorEmail: user.email,
-      vendorName: user.displayName || "Vendor",
+      vendorName: user.displayName,
       marketName,
       date: selectedDate.toISOString().split("T")[0],
       marketDescription,
+      location,
       image,
       itemDescription,
       status: "pending",
@@ -64,7 +66,7 @@ const ProductCreate = ({ onProductAdded }) => {
       await axiosSecure.post("/product", product);
       toast.success("✅ Product submitted successfully!");
       form.reset();
-      setItems(defaultItems); // reset items
+      setItems(defaultItems);
       if (onProductAdded) onProductAdded();
     } catch (err) {
       toast.error("❌ Failed to submit product.");
@@ -81,6 +83,29 @@ const ProductCreate = ({ onProductAdded }) => {
       </h2>
 
       <form onSubmit={handleAddProduct} className="grid grid-cols-1 gap-6 text-gray-800">
+        {/* 📧 Vendor Email */}
+        <div>
+          <label className="block font-semibold text-purple-700 mb-2">📧 Vendor Email</label>
+          <input
+            type="email"
+            value={user.email}
+            readOnly
+            className="w-full p-3 rounded-lg border border-purple-300 bg-gray-100"
+          />
+        </div>
+
+        {/* 🧑‍🌾 Vendor Name */}
+        <div>
+          <label className="block font-semibold text-purple-700 mb-2">🧑‍🌾 Vendor Name</label>
+          <input
+            type="text"
+            readOnly
+            value={user.displayName}
+            onChange={(e) => setVendorName(e.target.value)}
+            className="w-full p-3 rounded-lg border border-purple-300"
+          />
+        </div>
+
         {/* Market Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -89,7 +114,7 @@ const ProductCreate = ({ onProductAdded }) => {
               type="text"
               name="marketName"
               required
-              className="w-full p-3 rounded-lg border border-purple-300 focus:outline-none"
+              className="w-full p-3 rounded-lg border border-purple-300"
               placeholder="e.g., Karwan Bazar"
             />
           </div>
@@ -100,7 +125,7 @@ const ProductCreate = ({ onProductAdded }) => {
               type="text"
               name="image"
               required
-              className="w-full p-3 rounded-lg border border-purple-300 focus:outline-none"
+              className="w-full p-3 rounded-lg border border-purple-300"
               placeholder="Paste image URL"
             />
           </div>
@@ -112,7 +137,17 @@ const ProductCreate = ({ onProductAdded }) => {
             name="marketDescription"
             required
             rows="3"
-            className="w-full p-3 rounded-lg border border-purple-300 focus:outline-none"
+            className="w-full p-3 rounded-lg border border-purple-300"
+            placeholder="Describe the market..."
+          />
+        </div>
+        <div>
+          <label className="block font-semibold text-purple-700 mb-2">Location</label>
+          <textarea
+            name="location"
+            required
+            rows="3"
+            className="w-full p-3 rounded-lg border border-purple-300"
             placeholder="Describe the market..."
           />
         </div>
@@ -124,7 +159,7 @@ const ProductCreate = ({ onProductAdded }) => {
           <textarea
             name="itemDescription"
             rows="2"
-            className="w-full p-3 rounded-lg border border-purple-300 focus:outline-none"
+            className="w-full p-3 rounded-lg border border-purple-300"
             placeholder="Details..."
           />
         </div>
@@ -139,7 +174,7 @@ const ProductCreate = ({ onProductAdded }) => {
           />
         </div>
 
-        {/* Item Inputs */}
+        {/* Product Items */}
         <div className="space-y-4">
           <h3 className="text-xl font-bold text-purple-800">🧺 Product Items</h3>
           {items.map((item, index) => (
@@ -189,6 +224,7 @@ const ProductCreate = ({ onProductAdded }) => {
           ))}
         </div>
 
+        {/* Submit Button */}
         <div>
           <button
             disabled={loading}

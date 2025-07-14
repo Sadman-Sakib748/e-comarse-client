@@ -95,8 +95,8 @@ const PaymentForm = () => {
                     };
 
                     const paymentRes = await axiousSecure.post('/payments', paymentData);
-
-                    if (paymentRes.data.insertedId) {
+                    console.log(paymentRes)
+                    if (paymentRes.data.paymentId) {
                         console.log('payment successfully');
                         setSuccessMsg('Payment successful!'); // ✅ Success message
                         toast.success('Payment successfully!');

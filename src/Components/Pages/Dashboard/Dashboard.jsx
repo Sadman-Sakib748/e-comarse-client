@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { Outlet, Link } from 'react-router';
 import useAuth from '../../hooks/useAuth';
 import useRole from '../../hooks/useRole';
@@ -9,16 +8,16 @@ import {
   User,
   LogOut
 } from 'lucide-react';
+import Spinner from '../Spinner/Spinner';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [role, isLoading] = useRole();
 
 
-  if (isLoading) return <div className="p-4">Loading...</div>;
+  if (isLoading) return <div className="p-4"><Spinner /></div>;
 
 
-  const roles = ['user', 'vendor', 'admin'];
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -73,7 +72,7 @@ const Dashboard = () => {
                 <User className="w-5 h-5" /> Update Profile
               </Link>
               {/* <Link to={`/dashboard/payment/${user?.uid}`} className="flex items-center gap-2 px-4 py-2 rounded text-red-500 hover:bg-red-100">
-                <CreditCard className="w-5 h-5" /> Payment
+                <CreditCard className="w-5 h-5" /> Payment History
               </Link> */}
             </>
           )}

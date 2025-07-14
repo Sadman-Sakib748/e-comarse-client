@@ -19,7 +19,7 @@ const Banner = () => {
         <SwiperSlide className="relative h-full rounded-lg overflow-hidden">
           <div className="h-[50%] w-full">
             <img
-              src="https://i.ibb.co/m55BGgqs/kacha-bazar-6.jpg"
+              src="https://i.ibb.co/21fgPh3Y/479992460-1132029822201281-7028575266690086655-n.jpg"
               alt="Fresh Vegetables"
               className="w-full h-[400px] object-cover"
             />
@@ -41,7 +41,7 @@ const Banner = () => {
         <SwiperSlide className="relative h-full rounded-lg overflow-hidden">
           <div className="h-[50%] w-full">
             <img
-              src="https://i.ibb.co/21fgPh3Y/479992460-1132029822201281-7028575266690086655-n.jpg"
+              src="https://i.ibb.co/m55BGgqs/kacha-bazar-6.jpg "
               alt="Discount Offers"
               className="w-full h-[400px] object-cover"
             />
@@ -51,7 +51,7 @@ const Banner = () => {
             <p className="max-w-xl mb-4 text-sm">
               Enjoy up to 20% off on daily groceries this week only!
             </p>
-            <Link to="/offers">
+            <Link to="/offer">
               <button className="bg-white text-yellow-700 font-semibold px-4 py-2 rounded hover:bg-gray-200 transition duration-300 text-sm">
                 View Offers
               </button>

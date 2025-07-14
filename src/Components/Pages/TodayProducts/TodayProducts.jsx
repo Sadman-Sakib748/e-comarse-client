@@ -1,33 +1,30 @@
-/* eslint-disable no-unused-vars */
 // components/TodayProducts.jsx
-
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Clock, MapPin, Star, ArrowRight } from "lucide-react";
-import { Link } from "react-router"; // ✅ If using react-router-dom, use: import { Link } from "react-router-dom"
+import { Link } from "react-router"; // ✅ ensure correct import
 import useAxiousSecure from "../../hooks/useAxiousSecure";
 import Spinner from "../Spinner/Spinner";
 
 
 const TodayProducts = () => {
-  const axiousSecure = useAxiousSecure(); 
+  const axiosSecure = useAxiousSecure();
 
   const { data: todayProducts = [], isLoading, isError } = useQuery({
     queryKey: ["todayProducts"],
     queryFn: async () => {
-      const res = await axiousSecure.get("/product");
-      return res.data;
+      const res = await axiosSecure.get("/product");
+      // ✅ Filter only approved products
+      return res.data.filter((p) => p.status === "approved");
     },
   });
 
-  if (isLoading) {
-    return <Spinner />;
-  }
+  if (isLoading) return <Spinner />;
 
   if (isError) {
     return (
-      <div className="py-16 text-center text-red-500 font-semibold ">
+      <div className="py-16 text-center text-red-500 font-semibold">
         Failed to load market data.
       </div>
     );
@@ -57,9 +54,9 @@ const TodayProducts = () => {
 
         {/* Products */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {todayProducts.slice(0, 3).map((product, index) => (
+          {todayProducts.slice(0, 6).map((product, index) => (
             <motion.div
-              key={product.id}
+              key={product._id}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 + index * 0.1, duration: 0.6 }}
@@ -72,36 +69,37 @@ const TodayProducts = () => {
                   className="w-full h-48 object-cover"
                 />
                 <div className="absolute top-4 left-4 bg-red-600 text-white px-2 py-1 text-sm rounded">
-                  {product.totalVendors} Vendors
+                  {product.items.length} Items
                 </div>
                 <div className="absolute top-4 right-4 flex items-center gap-1 bg-white px-2 py-1 rounded-full text-sm shadow">
                   <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
-                  {product.rating}
+                  {product.rating || "4.5"}
                 </div>
               </div>
+
               <div className="p-4">
                 <h3 className="text-lg font-bold flex items-center gap-1 text-gray-800">
                   <MapPin className="h-4 w-4 text-red-600" />
                   {product.marketName}
                 </h3>
                 <p className="text-sm text-gray-500 mb-4">
-                  {product.location} • {product.date}
+                  {product.location || "Dhaka"} • {product.date}
                 </p>
+
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   {product.items.map((item, idx) => (
                     <div key={idx} className="bg-gray-100 p-3 rounded">
                       <div className="flex justify-between items-center mb-1 text-sm">
                         <span>{item.name}</span>
                         <span
-                          className={`text-xs px-2 py-0.5 rounded-full ${
-                            item.change.startsWith("+")
+                          className={`text-xs px-2 py-0.5 rounded-full ${item.change?.startsWith("+")
                               ? "bg-red-100 text-red-600"
-                              : item.change.startsWith("-")
-                              ? "bg-green-100 text-green-600"
-                              : "bg-gray-200 text-gray-600"
-                          }`}
+                              : item.change?.startsWith("-")
+                                ? "bg-green-100 text-green-600"
+                                : "bg-gray-200 text-gray-600"
+                            }`}
                         >
-                          {item.change}
+                          {item.change || "0"}
                         </span>
                       </div>
                       <div className="text-red-600 font-bold">
@@ -111,8 +109,9 @@ const TodayProducts = () => {
                     </div>
                   ))}
                 </div>
+
                 <div className="flex justify-between items-center border-t pt-3 text-sm text-gray-600">
-                  <span>{product.vendor}</span>
+                  <span>{product.vendorName}</span>
                   <Link to={`/products/${product._id}`}>
                     <button className="flex items-center text-white bg-red-600 px-3 py-1.5 rounded hover:bg-red-700">
                       View Details <ArrowRight className="ml-1 h-4 w-4" />

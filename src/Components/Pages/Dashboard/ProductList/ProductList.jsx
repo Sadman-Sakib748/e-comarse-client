@@ -1,15 +1,18 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useAuth from '../../../hooks/useAuth';
 import { useNavigate } from 'react-router';
 import useAxiosSecure from '../../../hooks/useAxiousSecure';
+import { toast } from 'react-hot-toast';
 
 const ProductList = () => {
   const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const encodedEmail = encodeURIComponent(user?.email || '');
 
+  // ✅ Load products
   const { data: products = [], isLoading, isError } = useQuery({
     enabled: !!user?.email,
     queryKey: ['products', user?.email],
@@ -19,8 +22,31 @@ const ProductList = () => {
     },
   });
 
+  // ✅ Cancel/Delete product
+  const { mutate: cancelProduct } = useMutation({
+    mutationFn: async (id) => {
+      const res = await axiosSecure.delete(`/productAdd/${id}`);
+      return res.data;
+    },
+    onSuccess: (data, id) => {
+      toast.success("Product cancelled successfully!");
+      queryClient.setQueryData(['products', user?.email], (old) =>
+        old.filter((item) => item._id !== id)
+      );
+    },
+    onError: () => {
+      toast.error("Failed to cancel product!");
+    },
+  });
+
   const handlePayment = (item) => {
     navigate(`/dashboard/payment/${item._id}`);
+  };
+
+  const handleCancel = (id) => {
+    if (confirm("Are you sure you want to cancel this product?")) {
+      cancelProduct(id);
+    }
   };
 
   return (
@@ -47,6 +73,7 @@ const ProductList = () => {
                 <th className="px-6 py-3 text-left font-semibold">Date</th>
                 <th className="px-6 py-3 text-left font-semibold">Total</th>
                 <th className="px-6 py-3 text-left font-semibold">Status</th>
+                <th className="px-6 py-3 text-center font-semibold">Payment</th>
                 <th className="px-6 py-3 text-center font-semibold">Action</th>
               </tr>
             </thead>
@@ -70,18 +97,30 @@ const ProductList = () => {
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-center">
+                  <td className="px-4 py-2 text-center space-x-2">
                     <button
                       onClick={() => handlePayment(item)}
                       disabled={item.payment_status === 'paid'}
-                      className={`px-4 py-2 rounded-md shadow-sm transition duration-200 ${
-                        item.payment_status === 'paid'
-                          ? 'bg-gray-400 cursor-not-allowed text-white'
-                          : 'bg-blue-600 hover:bg-blue-700 text-white'
-                      }`}
+                      className={`px-4 py-2 rounded-md shadow-sm transition duration-200 ${item.payment_status === 'paid'
+                        ? 'bg-gray-400 cursor-not-allowed text-white'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white'
+                        }`}
                     >
                       {item.payment_status === 'paid' ? 'Paid' : 'Pay Now'}
                     </button>
+
+
+                  </td>
+                  <td>
+                    {/* ✅ Cancel Button */}
+                    {item.payment_status !== 'paid' && (
+                      <button
+                        onClick={() => handleCancel(item._id)}
+                        className="px-4 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white"
+                      >
+                        Cancel
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

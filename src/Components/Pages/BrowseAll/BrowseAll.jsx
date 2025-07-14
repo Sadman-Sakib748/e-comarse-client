@@ -6,7 +6,7 @@ import { Link } from "react-router";
 import Spinner from "../Spinner/Spinner";
 import useAxiosSecure from "../../hooks/useAxiousSecure";
 
-// ✅ Fetch function (axiosSecure passed through meta)
+// ✅ Fetch function with approval filter
 const fetchFilteredProducts = async ({ queryKey, meta }) => {
   const [, sort, startDate, endDate] = queryKey;
   const axiosSecure = meta.axiosSecure;
@@ -17,7 +17,10 @@ const fetchFilteredProducts = async ({ queryKey, meta }) => {
   if (endDate) params.append("endDate", endDate);
 
   const res = await axiosSecure.get(`/product?${params.toString()}`);
-  return res.data;
+  const allProducts = res.data;
+
+  // ✅ Filter only approved products
+  return allProducts.filter((p) => p.status === "approved");
 };
 
 const BrowseAll = () => {
@@ -38,23 +41,16 @@ const BrowseAll = () => {
   });
 
   const handleSortChange = (e) => setSort(e.target.value);
-  const handleStartDateChange = (e) => {
-    console.log("Start Date:", e.target.value);
-    setStartDate(e.target.value);
-  };
-  const handleEndDateChange = (e) => {
-    console.log("End Date:", e.target.value);
-    setEndDate(e.target.value);
-  };
+  const handleStartDateChange = (e) => setStartDate(e.target.value);
+  const handleEndDateChange = (e) => setEndDate(e.target.value);
 
   if (isLoading) return <Spinner />;
-  if (isError) {
+  if (isError)
     return (
       <div className="py-16 text-center text-red-500 font-semibold">
         Failed to load market data.
       </div>
     );
-  }
 
   return (
     <section className="py-16 relative">
@@ -68,7 +64,9 @@ const BrowseAll = () => {
         >
           <div className="inline-flex items-center gap-2 bg-red-100 rounded-full px-6 py-2 mb-4">
             <Clock className="h-4 w-4 text-red-600" />
-            <span className="text-sm font-medium text-red-700">Today’s Update</span>
+            <span className="text-sm font-medium text-red-700">
+              Today’s Update
+            </span>
           </div>
           <h2 className="text-3xl md:text-5xl font-bold text-gray-800 mb-4">
             Latest <span className="text-red-600">Market Prices</span>
@@ -112,7 +110,7 @@ const BrowseAll = () => {
 
         {/* Products */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {Array.isArray(todayProducts) && todayProducts.length > 0 ? (
+          {todayProducts.length > 0 ? (
             todayProducts.map((product, index) => (
               <motion.div
                 key={product._id || index}
@@ -150,10 +148,10 @@ const BrowseAll = () => {
                           <span>{item.name}</span>
                           <span
                             className={`text-xs px-2 py-0.5 rounded-full ${item.change.startsWith("+")
-                              ? "bg-red-100 text-red-600"
-                              : item.change.startsWith("-")
-                                ? "bg-green-100 text-green-600"
-                                : "bg-gray-200 text-gray-600"
+                                ? "bg-red-100 text-red-600"
+                                : item.change.startsWith("-")
+                                  ? "bg-green-100 text-green-600"
+                                  : "bg-gray-200 text-gray-600"
                               }`}
                           >
                             {item.change}
@@ -161,7 +159,9 @@ const BrowseAll = () => {
                         </div>
                         <div className="text-red-600 font-bold">
                           ৳{item.price}
-                          <span className="text-xs text-gray-500 ml-1">/{item.unit}</span>
+                          <span className="text-xs text-gray-500 ml-1">
+                            /{item.unit}
+                          </span>
                         </div>
                       </div>
                     ))}
@@ -178,7 +178,7 @@ const BrowseAll = () => {
               </motion.div>
             ))
           ) : (
-            <p className="text-center text-gray-500">No products available.</p>
+            <p className="text-center text-gray-500">No approved products available.</p>
           )}
         </div>
       </div>
