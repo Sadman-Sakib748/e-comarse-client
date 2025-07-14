@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Clock, MapPin, Star, ArrowRight } from "lucide-react";
-import { Link } from "react-router";
+import { Link } from "react-router"; // ✅ fixed import
 import Spinner from "../Spinner/Spinner";
 import useAxiosSecure from "../../hooks/useAxiousSecure";
 
@@ -19,7 +19,6 @@ const fetchFilteredProducts = async ({ queryKey, meta }) => {
   const res = await axiosSecure.get(`/product?${params.toString()}`);
   const allProducts = res.data;
 
-  // ✅ Filter only approved products
   return allProducts.filter((p) => p.status === "approved");
 };
 
@@ -28,6 +27,8 @@ const BrowseAll = () => {
   const [sort, setSort] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 6;
 
   const {
     data: todayProducts = [],
@@ -43,6 +44,11 @@ const BrowseAll = () => {
   const handleSortChange = (e) => setSort(e.target.value);
   const handleStartDateChange = (e) => setStartDate(e.target.value);
   const handleEndDateChange = (e) => setEndDate(e.target.value);
+
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = todayProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+  const totalPages = Math.ceil(todayProducts.length / productsPerPage);
 
   if (isLoading) return <Spinner />;
   if (isError)
@@ -110,8 +116,8 @@ const BrowseAll = () => {
 
         {/* Products */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {todayProducts.length > 0 ? (
-            todayProducts.map((product, index) => (
+          {currentProducts.length > 0 ? (
+            currentProducts.map((product, index) => (
               <motion.div
                 key={product._id || index}
                 initial={{ opacity: 0, y: 30 }}
@@ -126,11 +132,11 @@ const BrowseAll = () => {
                     className="w-full h-48 object-cover"
                   />
                   <div className="absolute top-4 left-4 bg-red-600 text-white px-2 py-1 text-sm rounded">
-                    {product.totalVendors} Vendors
+                    {product.totalVendors || product.items.length} Vendors
                   </div>
                   <div className="absolute top-4 right-4 flex items-center gap-1 bg-white px-2 py-1 rounded-full text-sm shadow">
                     <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
-                    {product.rating}
+                    {product.rating || "4.5"}
                   </div>
                 </div>
                 <div className="p-4">
@@ -139,7 +145,7 @@ const BrowseAll = () => {
                     {product.marketName}
                   </h3>
                   <p className="text-sm text-gray-500 mb-4">
-                    {product.location} • {product.date}
+                    {typeof product.location === "string" ? product.location : "Dhaka"} • {product.date}
                   </p>
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     {(product.items || []).map((item, idx) => (
@@ -147,21 +153,19 @@ const BrowseAll = () => {
                         <div className="flex justify-between items-center mb-1 text-sm">
                           <span>{item.name}</span>
                           <span
-                            className={`text-xs px-2 py-0.5 rounded-full ${item.change.startsWith("+")
+                            className={`text-xs px-2 py-0.5 rounded-full ${item.change?.startsWith("+")
                                 ? "bg-red-100 text-red-600"
-                                : item.change.startsWith("-")
+                                : item.change?.startsWith("-")
                                   ? "bg-green-100 text-green-600"
                                   : "bg-gray-200 text-gray-600"
                               }`}
                           >
-                            {item.change}
+                            {item.change || "0"}
                           </span>
                         </div>
                         <div className="text-red-600 font-bold">
                           ৳{item.price}
-                          <span className="text-xs text-gray-500 ml-1">
-                            /{item.unit}
-                          </span>
+                          <span className="text-xs text-gray-500 ml-1">/{item.unit}</span>
                         </div>
                       </div>
                     ))}
@@ -181,6 +185,24 @@ const BrowseAll = () => {
             <p className="text-center text-gray-500">No approved products available.</p>
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="mt-10 flex justify-center gap-2 flex-wrap">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-4 py-2 rounded border ${currentPage === page
+                    ? "bg-red-600 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
+                  }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

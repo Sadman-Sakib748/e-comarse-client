@@ -96,11 +96,15 @@ export const router = createBrowserRouter([
     },
     {
         path: 'dashboard',
-        element: <Dashboard />,
+        element: <PrivateRoute>
+            <Dashboard />
+        </PrivateRoute>,
         children: [
             {
                 path: 'home',
-                element: <DashbordHome />
+                element: <PrivateRoute>
+                    <DashbordHome />
+                </PrivateRoute>
             },
             {
                 path: 'product',
@@ -120,9 +124,11 @@ export const router = createBrowserRouter([
             {
                 path: 'paymentHistory',
                 element:
-                    <VendorRoute>
-                        <PaymentHistory />
-                    </VendorRoute>
+                    <PrivateRoute>
+                        <VendorRoute>
+                            <PaymentHistory />
+                        </VendorRoute>
+                    </PrivateRoute>
 
             },
             {

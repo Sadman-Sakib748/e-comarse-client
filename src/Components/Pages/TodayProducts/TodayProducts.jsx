@@ -3,10 +3,9 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Clock, MapPin, Star, ArrowRight } from "lucide-react";
-import { Link } from "react-router"; // ✅ ensure correct import
+import { Link } from "react-router"; // ✅ correct import
 import useAxiousSecure from "../../hooks/useAxiousSecure";
 import Spinner from "../Spinner/Spinner";
-
 
 const TodayProducts = () => {
   const axiosSecure = useAxiousSecure();
@@ -15,7 +14,6 @@ const TodayProducts = () => {
     queryKey: ["todayProducts"],
     queryFn: async () => {
       const res = await axiosSecure.get("/product");
-      // ✅ Filter only approved products
       return res.data.filter((p) => p.status === "approved");
     },
   });
@@ -82,8 +80,10 @@ const TodayProducts = () => {
                   <MapPin className="h-4 w-4 text-red-600" />
                   {product.marketName}
                 </h3>
+
+                {/* ✅ FIXED Location Rendering */}
                 <p className="text-sm text-gray-500 mb-4">
-                  {product.location || "Dhaka"} • {product.date}
+                  {typeof product.location === "string" ? product.location : "Dhaka"} • {product.date}
                 </p>
 
                 <div className="grid grid-cols-2 gap-3 mb-4">

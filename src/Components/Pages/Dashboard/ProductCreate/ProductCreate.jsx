@@ -5,25 +5,22 @@ import "react-datepicker/dist/react-datepicker.css";
 import useAuth from "../../../hooks/useAuth";
 import useAxiosSecure from "../../../hooks/useAxiousSecure";
 
-const defaultItems = [
-  { name: "Onion", price: "", unit: "kg", change: "" },
-  { name: "Potato", price: "", unit: "kg", change: "" },
-  { name: "Tomato", price: "", unit: "kg", change: "" },
-  { name: "Chili", price: "", unit: "kg", change: "" },
-];
-
 const ProductCreate = ({ onProductAdded }) => {
   const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(false);
-  const [items, setItems] = useState(defaultItems);
-  const [vendorName, setVendorName] = useState(user?.displayName || "");
-console.log(vendorName, 'name')
+  const [items, setItems] = useState([]);
+  const [vendorName] = useState(user?.displayName || "");
+
   const handleItemChange = (index, field, value) => {
     const updated = [...items];
     updated[index][field] = value;
     setItems(updated);
+  };
+
+  const handleAddNewItem = () => {
+    setItems([...items, { name: "", price: "", unit: "kg", change: "" }]);
   };
 
   const handleAddProduct = async (e) => {
@@ -35,13 +32,14 @@ console.log(vendorName, 'name')
     const marketDescription = form.marketDescription.value;
     const image = form.image.value;
     const itemDescription = form.itemDescription.value;
+    const location = form.location.value;
 
-    const validItems = items.filter((item) => item.price);
+    const validItems = items.filter((item) => item.name && item.price);
     const pricePerUnit = parseFloat(validItems[0]?.price || 0);
 
     const product = {
       vendorEmail: user.email,
-      vendorName: user.displayName,
+      vendorName,
       marketName,
       date: selectedDate.toISOString().split("T")[0],
       marketDescription,
@@ -66,7 +64,7 @@ console.log(vendorName, 'name')
       await axiosSecure.post("/product", product);
       toast.success("✅ Product submitted successfully!");
       form.reset();
-      setItems(defaultItems);
+      setItems([]);
       if (onProductAdded) onProductAdded();
     } catch (err) {
       toast.error("❌ Failed to submit product.");
@@ -99,10 +97,9 @@ console.log(vendorName, 'name')
           <label className="block font-semibold text-purple-700 mb-2">🧑‍🌾 Vendor Name</label>
           <input
             type="text"
+            value={vendorName}
             readOnly
-            value={user.displayName}
-            onChange={(e) => setVendorName(e.target.value)}
-            className="w-full p-3 rounded-lg border border-purple-300"
+            className="w-full p-3 rounded-lg border border-purple-300 bg-gray-100"
           />
         </div>
 
@@ -141,6 +138,7 @@ console.log(vendorName, 'name')
             placeholder="Describe the market..."
           />
         </div>
+
         <div>
           <label className="block font-semibold text-purple-700 mb-2">Location</label>
           <textarea
@@ -148,7 +146,7 @@ console.log(vendorName, 'name')
             required
             rows="3"
             className="w-full p-3 rounded-lg border border-purple-300"
-            placeholder="Describe the market..."
+            placeholder="Location of the market..."
           />
         </div>
 
@@ -176,7 +174,21 @@ console.log(vendorName, 'name')
 
         {/* Product Items */}
         <div className="space-y-4">
-          <h3 className="text-xl font-bold text-purple-800">🧺 Product Items</h3>
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-bold text-purple-800">🧺 Product Items</h3>
+            <button
+              type="button"
+              onClick={handleAddNewItem}
+              className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+            >
+              ➕ Add Item
+            </button>
+          </div>
+
+          {items.length === 0 && (
+            <p className="text-gray-500 text-sm italic">No items added yet.</p>
+          )}
+
           {items.map((item, index) => (
             <div
               key={index}
@@ -186,9 +198,11 @@ console.log(vendorName, 'name')
                 <label className="block text-sm font-semibold mb-1">Name</label>
                 <input
                   type="text"
+                  required
                   value={item.name}
-                  readOnly
-                  className="w-full bg-gray-100 p-2 rounded border"
+                  onChange={(e) => handleItemChange(index, "name", e.target.value)}
+                  className="w-full p-2 rounded border"
+                  placeholder="e.g., Onion"
                 />
               </div>
               <div>
@@ -208,6 +222,7 @@ console.log(vendorName, 'name')
                   value={item.unit}
                   onChange={(e) => handleItemChange(index, "unit", e.target.value)}
                   className="w-full p-2 rounded border"
+                  placeholder="e.g., kg"
                 />
               </div>
               <div>
