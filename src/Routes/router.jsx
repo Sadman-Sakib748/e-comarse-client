@@ -125,9 +125,7 @@ export const router = createBrowserRouter([
                 path: 'paymentHistory',
                 element:
                     <PrivateRoute>
-                        <VendorRoute>
                             <PaymentHistory />
-                        </VendorRoute>
                     </PrivateRoute>
 
             },

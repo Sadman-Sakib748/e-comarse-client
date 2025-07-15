@@ -11,32 +11,47 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import useAuth from "../../../hooks/useAuth";
 import useAxiosSecure from "../../../hooks/useAxiousSecure";
+import toast from "react-hot-toast";
+
+const SummaryCard = ({ title, count }) => (
+  <div className="bg-white border shadow p-4 rounded text-center">
+    <h4 className="text-gray-600 text-sm mb-1">{title}</h4>
+    <p className="text-2xl font-bold text-red-500">{count}</p>
+  </div>
+);
 
 const DashboardHome = () => {
   const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("priceTrends");
 
-  // ✅ Load Products for Price Trends
-  const {
-    data: productData = [],
-    isLoading: loadingProducts,
-    error: productError,
-  } = useQuery({
-    queryKey: ["products"],
+  const { data: summary = {}, isLoading: loadingSummary } = useQuery({
+    queryKey: ["summary", user?.email],
     queryFn: async () => {
-      const res = await axiosSecure.get("/product");
+      const res = await axiosSecure.get(`/estimateCount?email=${user?.email}`);
       return res.data;
     },
+    enabled: !!user?.email,
   });
 
-  // ✅ Load Watchlist
+  const { data: payments = [], isLoading: loadingPayments } = useQuery({
+    queryKey: ["payments", user?.email],
+    queryFn: async () => {
+      const res = await axiosSecure.get(`/payments?email=${user?.email}`);
+      return res.data;
+    },
+    enabled: !!user?.email,
+  });
+
   const {
     data: watchlist = [],
     isLoading: loadingWatchlist,
+    refetch: refetchWatchlist,
   } = useQuery({
     queryKey: ["watchlist", user?.email],
     queryFn: async () => {
@@ -46,50 +61,60 @@ const DashboardHome = () => {
     enabled: !!user?.email,
   });
 
-  // ✅ Load My Orders
-  const {
-    data: orders = [],
-    isLoading: loadingOrders,
-  } = useQuery({
-    queryKey: ["myOrders", user?.email],
-    queryFn: async () => {
-      const res = await axiosSecure.get(`/orders/${user?.email}`);
-      return res.data;
-    },
-    enabled: !!user?.email,
-  });
+  const handleRemove = async (id) => {
+    try {
+      const res = await axiosSecure.delete(`/watchlist/${id}`);
+      if (res.data.deletedCount > 0) {
+        toast.success("Removed from watchlist");
+        refetchWatchlist(); // Refresh the table
+      }
+    } catch (error) {
+      toast.error("Failed to remove");
+    }
+  };
 
-  // ✅ Format Price Chart Data
-  const priceData = productData
-    .slice()
-    .reverse()
-    .slice(0, 7) // last 7 entries
-    .map((entry) => {
-      const onion = entry.items.find((i) => i.name.toLowerCase() === "onion");
-      const potato = entry.items.find((i) => i.name.toLowerCase() === "potato");
-      const tomato = entry.items.find((i) => i.name.toLowerCase() === "tomato");
+  const totalAmount = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
 
-      return {
-        date: entry.date,
-        onion: onion ? Number(onion.price) : 0,
-        potato: potato ? Number(potato.price) : 0,
-        tomato: tomato ? Number(tomato.price) : 0,
-      };
+  const priceData = (() => {
+    if (!payments || payments.length === 0) return [];
+
+    const today = new Date();
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+    sevenDaysAgo.setDate(today.getDate() - 6);
+
+    const datePriceMap = {};
+
+    payments.forEach((p) => {
+      const dateObj = new Date(p.payment_date);
+      if (isNaN(dateObj)) return;
+
+      const dateStr = dateObj.toISOString().split("T")[0];
+      if (dateObj >= sevenDaysAgo) {
+        datePriceMap[dateStr] =
+          (datePriceMap[dateStr] || 0) + Number(p.amount / 100 || 0);
+      }
     });
 
-  // ✅ Loading/Error States
-  if (loadingProducts || loadingOrders) {
+    const chartData = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(sevenDaysAgo);
+      d.setDate(sevenDaysAgo.getDate() + i);
+      const dateStr = d.toISOString().split("T")[0];
+
+      chartData.push({
+        date: format(d, "MMM d"),
+        price: datePriceMap[dateStr] || 0,
+      });
+    }
+
+    return chartData;
+  })();
+
+  if (loadingSummary || loadingPayments || loadingWatchlist) {
     return (
       <div className="min-h-screen flex justify-center items-center text-xl font-semibold">
         Loading...
-      </div>
-    );
-  }
-
-  if (productError) {
-    return (
-      <div className="min-h-screen flex justify-center items-center text-xl font-semibold text-red-600">
-        Error: {productError.message}
       </div>
     );
   }
@@ -103,117 +128,118 @@ const DashboardHome = () => {
           transition={{ duration: 0.6 }}
         >
           <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6">
-            📊 User Dashboard
+            📊 Amount Tracker
           </h1>
 
-          {/* Tabs */}
-          <div className="flex gap-4 mb-6">
-            {[
-              { id: "priceTrends", label: "দাম ট্রেন্ড" },
-              { id: "watchlist", label: "ওয়াচলিস্ট" },
-              { id: "myOrders", label: "আমার অর্ডার" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded font-semibold ${activeTab === tab.id
-                  ? "bg-red-500 text-white"
-                  : "bg-white border border-gray-300"
-                  }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+          {/* Summary Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <SummaryCard title="Watchlist Items" count={watchlist.length || 0} />
+            <SummaryCard title="Total Orders" count={payments.length || 0} />
+            <SummaryCard
+              title="Total Payments"
+              count={`৳${(totalAmount / 100).toFixed(2)}`}
+            />
           </div>
 
-          {/* Tab Contents */}
-          {activeTab === "priceTrends" && (
-            <div className="bg-white p-6 rounded shadow">
+          {/* Tab Buttons */}
+          <div className="flex gap-4 mb-6">
+            <button
+              onClick={() => setActiveTab("priceTrends")}
+              className={`px-4 py-2 rounded font-semibold ${activeTab === "priceTrends"
+                  ? "bg-red-500 text-white"
+                  : "bg-white border border-gray-300"
+                }`}
+            >
+              Payment Trends
+            </button>
+            <button
+              onClick={() => setActiveTab("watchlist")}
+              className={`px-4 py-2 rounded font-semibold ${activeTab === "watchlist"
+                  ? "bg-red-500 text-white"
+                  : "bg-white border border-gray-300"
+                }`}
+            >
+              Watchlist
+            </button>
+          </div>
+
+          {/* Chart - Payment Price History */}
+          {activeTab === "priceTrends" && priceData.length > 0 && (
+            <div className="bg-white p-6 rounded shadow mb-8">
               <h2 className="text-xl font-bold text-red-700 mb-2">
-                Price History - Last 7 Days
+                Payment Price History - Last 7 Days
               </h2>
-              <div className="h-80">
+              <div className="h-80 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={priceData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#fecaca" />
                     <XAxis dataKey="date" stroke="#dc2626" />
-                    <YAxis stroke="#dc2626" />
+                    <YAxis stroke="#dc2626" tickFormatter={(v) => `৳${v}`} />
                     <Tooltip
-                      contentStyle={{
-                        backgroundColor: "white",
-                        border: "1px solid #fecaca",
-                        borderRadius: "8px",
-                      }}
+                      formatter={(value) => `৳${value.toFixed(2)}`}
+                      labelFormatter={(label) => `Date: ${label}`}
                     />
-                    <Line type="monotone" dataKey="onion" stroke="#dc2626" strokeWidth={3} name="Onion (৳/kg)" />
-                    <Line type="monotone" dataKey="potato" stroke="#ea580c" strokeWidth={3} name="Potato (৳/kg)" />
-                    <Line type="monotone" dataKey="tomato" stroke="#f97316" strokeWidth={3} name="Tomato (৳/kg)" />
+                    <Line
+                      type="monotone"
+                      dataKey="price"
+                      stroke="#dc2626"
+                      strokeWidth={3}
+                      name="Total Payment (৳)"
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
           )}
 
+          {/* Watchlist Table */}
           {activeTab === "watchlist" && (
             <div className="bg-white p-6 rounded shadow">
-              <h2 className="text-xl font-bold text-red-700 mb-4">📌 My Watchlist</h2>
-              {loadingWatchlist ? (
-                <p>Loading watchlist...</p>
-              ) : watchlist.length === 0 ? (
-                <p className="text-gray-500">Your watchlist is empty.</p>
+              <h2 className="text-xl font-bold text-red-700 mb-4">
+                📌 Watchlist Items
+              </h2>
+              {watchlist.length === 0 ? (
+                <p className="text-gray-500">No items in your watchlist.</p>
               ) : (
-                <table className="w-full text-left border border-gray-200">
-                  <thead>
-                    <tr className="bg-red-100">
-                      <th className="px-4 py-2 border-b">Market</th>
-                      <th className="px-4 py-2 border-b">Vendor</th>
-                      <th className="px-4 py-2 border-b">Date</th>
-                      <th className="px-4 py-2 border-b">Total Price (৳)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {watchlist.map((item) => (
-                      <tr key={item._id} className="hover:bg-red-50">
-                        <td className="px-4 py-2 border-b">{item.marketName}</td>
-                        <td className="px-4 py-2 border-b">{item.vendor}</td>
-                        <td className="px-4 py-2 border-b">{item.date}</td>
-                        <td className="px-4 py-2 border-b">{item.totalPrice}</td>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full border text-sm text-left text-gray-700">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="px-4 py-2 border">#</th>
+                        <th className="px-4 py-2 border">Market</th>
+                        <th className="px-4 py-2 border">Vendor</th>
+                        <th className="px-4 py-2 border">Date</th>
+                        <th className="px-4 py-2 border">Total</th>
+                        <th className="px-4 py-2 border">Action</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          )}
-
-          {activeTab === "myOrders" && (
-            <div className="bg-white p-6 rounded shadow">
-              <h2 className="text-xl font-bold text-red-700 mb-4">🛍️ My Orders</h2>
-              {loadingOrders ? (
-                <p>Loading orders...</p>
-              ) : orders.length === 0 ? (
-                <p className="text-gray-500">You have not placed any orders yet.</p>
-              ) : (
-                <table className="w-full text-left border border-gray-200">
-                  <thead>
-                    <tr className="bg-red-100">
-                      <th className="px-4 py-2 border-b">Market</th>
-                      <th className="px-4 py-2 border-b">Date</th>
-                      <th className="px-4 py-2 border-b">Total Price (৳)</th>
-                      <th className="px-4 py-2 border-b">Payment</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {orders.map((order) => (
-                      <tr key={order._id} className="hover:bg-red-50">
-                        <td className="px-4 py-2 border-b">{order.marketName}</td>
-                        <td className="px-4 py-2 border-b">{order.date}</td>
-                        <td className="px-4 py-2 border-b">{order.totalPrice}</td>
-                        <td className="px-4 py-2 border-b capitalize">{order.payment_status}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {watchlist.map((item, index) => (
+                        <tr key={item._id || index} className="hover:bg-gray-50">
+                          <td className="px-4 py-2 border">{index + 1}</td>
+                          <td className="px-4 py-2 border">
+                            {item.marketName || "N/A"}
+                          </td>
+                          <td className="px-4 py-2 border">{item.vendor || "N/A"}</td>
+                          <td className="px-4 py-2 border">
+                            {item.date ? format(new Date(item.date), "PPP") : "N/A"}
+                          </td>
+                          <td className="px-4 py-2 border">
+                            ৳{item.totalPrice || "0"}
+                          </td>
+                          <td className="px-4 py-2 border text-red-600 font-medium">
+                            <button
+                              onClick={() => handleRemove(item._id)}
+                              className="hover:underline"
+                            >
+                              ❌ Remove
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           )}

@@ -37,6 +37,9 @@ const Dashboard = () => {
               <Link to="/dashboard/myProducts" className="flex items-center gap-2 px-4 py-2 rounded hover:bg-gray-200">
                 <CreditCard className="w-5 h-5" /> My Products
               </Link>
+              <Link to={`/dashboard/paymentHistory`} className="flex items-center gap-2 px-4 py-2 rounded text-red-500 hover:bg-red-100">
+                <CreditCard className="w-5 h-5" /> Payment History
+              </Link>
               <Link to="/dashboard/venAddAdver" className="flex items-center gap-2 px-4 py-2 rounded hover:bg-gray-200">
                 <CreditCard className="w-5 h-5" />  Add Advertisements
               </Link>
@@ -60,20 +63,24 @@ const Dashboard = () => {
               <Link to="/dashboard/allOrder" className="flex items-center gap-2 px-4 py-2 rounded hover:bg-gray-200">
                 <User className="w-5 h-5" /> All Order
               </Link>
+
             </>
           )}
 
           {role === 'user' && (
             <>
+              <Link to="/dashboard/home" className="flex items-center gap-2 px-4 py-2 rounded hover:bg-gray-200">
+                <Package className="w-5 h-5" /> Dashbord Home
+              </Link>
               <Link to="/dashboard/product" className="flex items-center gap-2 px-4 py-2 rounded hover:bg-gray-200">
                 <Package className="w-5 h-5" /> Product
               </Link>
               <Link to="/dashboard/updateProfile" className="flex items-center gap-2 px-4 py-2 rounded text-red-500 hover:bg-red-100">
                 <User className="w-5 h-5" /> Update Profile
               </Link>
-              {/* <Link to={`/dashboard/payment/${user?.uid}`} className="flex items-center gap-2 px-4 py-2 rounded text-red-500 hover:bg-red-100">
+              <Link to={`/dashboard/paymentHistory`} className="flex items-center gap-2 px-4 py-2 rounded text-red-500 hover:bg-red-100">
                 <CreditCard className="w-5 h-5" /> Payment History
-              </Link> */}
+              </Link>
             </>
           )}
 

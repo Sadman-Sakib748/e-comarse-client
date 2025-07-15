@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import {
@@ -13,14 +12,16 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Link } from "react-router";
-
-const fetchOffers = async () => {
-  const res = await axios.get(`http://localhost:5000/offers`);
-  return res.data;
-};
+import useAxiosSecure from "../../hooks/useAxiousSecure";  // your secure axios hook
 
 const Offers = () => {
+  const axiosSecure = useAxiosSecure();
   const [isFavoritedIds, setIsFavoritedIds] = useState([]);
+
+  const fetchOffers = async () => {
+    const res = await axiosSecure.get("/offers");  // Use secure axios instance
+    return res.data;
+  };
 
   const {
     data: offers = [],

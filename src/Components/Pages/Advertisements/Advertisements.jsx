@@ -1,17 +1,20 @@
 import React from "react";
 import { motion } from "framer-motion";
-import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { Link } from "react-router";  // Import Link
+import { Link } from "react-router";
+import useAxiosSecure from "../../hooks/useAxiousSecure";
 
-const fetchAdvertisements = async () => {
-  const res = await axios.get("http://localhost:5000/offers");
-  return res.data;
-};
 
 const Advertisements = () => {
+  const axiosSecure = useAxiosSecure();
+
+  const fetchAdvertisements = async () => {
+    const res = await axiosSecure.get("/offers");  // note: no base URL here, axiosSecure likely pre-configured
+    return res.data;
+  };
+
   const { data: advertisements = [], isLoading, isError } = useQuery({
     queryKey: ["advertisements"],
     queryFn: fetchAdvertisements,

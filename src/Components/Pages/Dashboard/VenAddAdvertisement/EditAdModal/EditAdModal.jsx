@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import useAxiosSecure from '../../../../hooks/useAxiousSecure';
 
 const EditAdModal = ({ ad, onClose, onUpdated }) => {
+    const axiosSecure = useAxiosSecure();
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -30,7 +32,7 @@ const EditAdModal = ({ ad, onClose, onUpdated }) => {
         e.preventDefault();
 
         try {
-            const res = await axios.put(`http://localhost:5000/offers/${ad._id}`, formData);
+            const res = await axiosSecure.put(`/offers/${ad._id}`, formData);
             if (res.data.success) {
                 toast.success(res.data.message);
                 onUpdated(); // callback to refresh list

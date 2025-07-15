@@ -1,22 +1,24 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router";
-import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
-
-const fetchAdDetails = async (id) => {
-  const res = await axios.get(`http://localhost:5000/offers/${id}`);
-  return res.data;
-};
+import useAxiosSecure from "../../hooks/useAxiousSecure";
 
 const AdvertisementDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const axiosSecure = useAxiosSecure();
+
+  const fetchAdDetails = async () => {
+    const res = await axiosSecure.get(`/offers/${id}`);
+    return res.data;
+  };
 
   const { data: ad, isLoading, isError } = useQuery({
     queryKey: ["advertisement", id],
-    queryFn: () => fetchAdDetails(id),
+    queryFn: fetchAdDetails,
+    enabled: !!id,
   });
 
   if (isLoading) {
@@ -44,11 +46,16 @@ const AdvertisementDetails = () => {
       >
         &larr; Back
       </button>
-      <img src={ad.image} alt={ad.title} className="w-full h-64 object-cover rounded mb-4" />
+      <img
+        src={ad.image}
+        alt={ad.title}
+        className="w-full h-64 object-cover rounded mb-4"
+      />
       <h1 className="text-3xl font-bold mb-2">{ad.title}</h1>
       <p className="mb-4 text-gray-700">{ad.description}</p>
       <p className="font-semibold">
-        Vendor/Location: <span className="text-gray-600">{ad.location || ad.vendor}</span>
+        Vendor/Location:{" "}
+        <span className="text-gray-600">{ad.location || ad.vendor}</span>
       </p>
       <p className="font-semibold">
         Discount: <span className="text-gray-600">{ad.discount || "Special"}</span>

@@ -62,7 +62,7 @@ const Products = () => {
         userEmail: user?.email,
         productId: product._id,
         marketName: product.marketName,
-        vendor: product.vendor,
+        vendor: product.vendorName,
         date: product.date,
         totalPrice,
       });
