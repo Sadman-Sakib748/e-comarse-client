@@ -1,32 +1,30 @@
-import React from 'react';
+import React from "react";
 
 const Spinner = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-transparent">
-      <div className="flex space-x-3">
+      <div className="flex space-x-4">
         {[...Array(3)].map((_, i) => (
           <div
             key={i}
-            className="w-3 h-8 rounded-lg shadow-lg animate-[risecolor_0.5s_ease-in-out_infinite]"
-            style={{ 
-              animationDelay: `${i * 0.15}s`,
-              background: 'linear-gradient(45deg, #3b82f6, #8b5cf6)'
+            className="w-5 h-5 rounded-full bg-gradient-to-br from-green-400 to-teal-600"
+            style={{
+              animation: `bounceDot 0.6s ease-in-out infinite`,
+              animationDelay: `${i * 0.2}s`,
             }}
           />
         ))}
       </div>
 
       <style>{`
-        @keyframes risecolor {
+        @keyframes bounceDot {
           0%, 100% {
-            transform: scaleY(0.4);
-            opacity: 0.6;
-            filter: hue-rotate(0deg);
+            transform: translateY(0);
+            opacity: 0.7;
           }
           50% {
-            transform: scaleY(1);
+            transform: translateY(-16px);
             opacity: 1;
-            filter: hue-rotate(45deg);
           }
         }
       `}</style>

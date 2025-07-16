@@ -1,71 +1,68 @@
 import React, { useState } from "react";
-import { Link, NavLink } from "react-router";
-import { Menu, X, ShoppingCart, TrendingUp, MapPin, Globe } from "lucide-react";
+import { Link, NavLink } from "react-router"; 
+import { Menu, X, ShoppingCart, TrendingUp, MapPin } from "lucide-react"; 
 import useAuth from "../../hooks/useAuth";
 import { toast } from "react-hot-toast";
+import useRole from "../../hooks/useRole";
+
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, logOut } = useAuth();
+  const [role, roleLoading] = useRole(); 
 
- 
+  const effectiveRole = (
+    role ||
+    user?.role ||
+    user?.userRole ||
+    user?.roleName ||
+    "user"
+  )
+    .toString()
+    .toLowerCase();
+
+  // Determine dashboard destination path based on role
+  const dashboardPath = effectiveRole === "admin" ? "/dashboard/allusers" : "/dashboard/home";
+  // -------------------------------------------------------------------------
 
   const toggleMenu = () => {
-    setIsOpen(!isOpen);
+    setIsOpen((prev) => !prev);
   };
+
+  const closeMenu = () => setIsOpen(false);
 
   const handleLogout = async () => {
     try {
       await logOut();
       toast.success("Logged out successfully!");
     } catch (err) {
-      toast.error("Logout failed! " + (err.message || ""));
+      toast.error("Logout failed! " + (err?.message || ""));
     }
   };
 
+  // central styles for NavLink
+  const navBase = "flex items-center gap-1 px-3 py-2 rounded-md transition";
+  const navClass = ({ isActive }) =>
+    `${navBase} ${isActive ? "text-yellow-300" : "text-gray-700 hover:text-red-600"}`;
 
   const navLinks = (
     <>
       <li>
-        <NavLink
-          to="/"
-          className={({ isActive }) =>
-            `flex items-center gap-1 px-3 py-2 rounded-md transition ${
-              isActive ? "text-yellow-300" : "text-gray-700 hover:text-red-600"
-            }`
-          }
-          onClick={() => setIsOpen(false)}
-        >
+        <NavLink to="/" className={navClass} onClick={closeMenu}>
           <ShoppingCart className="h-4 w-4" />
           Home
         </NavLink>
       </li>
 
       <li>
-        <NavLink
-          to="/BrowseAll"
-          className={({ isActive }) =>
-            `flex items-center gap-1 px-3 py-2 rounded-md transition ${
-              isActive ? "text-yellow-300" : "text-gray-700 hover:text-red-600"
-            }`
-          }
-          onClick={() => setIsOpen(false)}
-        >
+        <NavLink to="/BrowseAll" className={navClass} onClick={closeMenu}>
           <TrendingUp className="h-4 w-4" />
           All Products
         </NavLink>
       </li>
 
       <li>
-        <NavLink
-          to="/markets"
-          className={({ isActive }) =>
-            `flex items-center gap-1 px-3 py-2 rounded-md transition ${
-              isActive ? "text-yellow-300" : "text-gray-700 hover:text-red-600"
-            }`
-          }
-          onClick={() => setIsOpen(false)}
-        >
+        <NavLink to="/markets" className={navClass} onClick={closeMenu}>
           <MapPin className="h-4 w-4" />
           Markets
         </NavLink>
@@ -75,26 +72,22 @@ const Navbar = () => {
         <NavLink
           to="/offer"
           className={({ isActive }) =>
-            `px-3 py-2 rounded-md transition ${
-              isActive ? "text-yellow-300" : "text-gray-700 hover:text-red-600"
-            }`
+            `px-3 py-2 rounded-md transition ${isActive ? "text-yellow-300" : "text-gray-700 hover:text-red-600"}`
           }
-          onClick={() => setIsOpen(false)}
+          onClick={closeMenu}
         >
           Offers
         </NavLink>
       </li>
 
-      {user && (
+      {user && !roleLoading && (
         <li>
           <NavLink
-            to={`/dashboard/home`}
+            to={dashboardPath}
             className={({ isActive }) =>
-              `px-3 py-2 rounded-md transition ${
-                isActive ? "text-yellow-300" : "text-gray-700 hover:text-red-600"
-              }`
+              `px-3 py-2 rounded-md transition ${isActive ? "text-yellow-300" : "text-gray-700 hover:text-red-600"}`
             }
-            onClick={() => setIsOpen(false)}
+            onClick={closeMenu}
           >
             Dashboard
           </NavLink>
@@ -105,10 +98,10 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white/95 backdrop-blur-sm shadow-lg sticky top-0 z-50 border-b border-red-100">
-      <div className="container mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo and Brand */}
-          <Link to="/" className="flex items-center space-x-3">
+          <Link to="/" className="flex items-center space-x-3" onClick={closeMenu}>
             <div className="bg-gradient-to-r from-red-600 to-orange-600 p-2 rounded-xl">
               <ShoppingCart className="h-6 w-6 text-white" />
             </div>
@@ -122,13 +115,15 @@ const Navbar = () => {
           <ul className="hidden md:flex items-center space-x-8 text-sm font-medium">
             {navLinks}
 
-
             {/* User Menu */}
             {user ? (
               <>
                 <li>
                   <button
-                    onClick={handleLogout}
+                    onClick={() => {
+                      handleLogout();
+                      closeMenu();
+                    }}
                     className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white px-4 py-2 rounded font-semibold border-0"
                   >
                     Logout
@@ -149,7 +144,7 @@ const Navbar = () => {
                   <Link
                     to="/login"
                     className="hover:text-red-600 transition px-3 py-2 rounded-md"
-                    onClick={() => setIsOpen(false)}
+                    onClick={closeMenu}
                   >
                     Login
                   </Link>
@@ -158,7 +153,7 @@ const Navbar = () => {
                   <Link
                     to="/register"
                     className="hover:text-red-600 transition px-3 py-2 rounded-md"
-                    onClick={() => setIsOpen(false)}
+                    onClick={closeMenu}
                   >
                     Register
                   </Link>
@@ -186,7 +181,6 @@ const Navbar = () => {
               <ul className="flex flex-col space-y-2 text-sm font-medium">
                 {navLinks}
 
-
                 {/* User Menu */}
                 {user ? (
                   <>
@@ -194,7 +188,7 @@ const Navbar = () => {
                       <button
                         onClick={() => {
                           handleLogout();
-                          setIsOpen(false);
+                          closeMenu();
                         }}
                         className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white px-4 py-2 rounded font-semibold border-0 w-full text-left"
                       >
@@ -216,7 +210,7 @@ const Navbar = () => {
                       <Link
                         to="/login"
                         className="hover:text-red-600 transition px-3 py-2 rounded-md block"
-                        onClick={() => setIsOpen(false)}
+                        onClick={closeMenu}
                       >
                         Login
                       </Link>
@@ -225,7 +219,7 @@ const Navbar = () => {
                       <Link
                         to="/register"
                         className="hover:text-red-600 transition px-3 py-2 rounded-md block"
-                        onClick={() => setIsOpen(false)}
+                        onClick={closeMenu}
                       >
                         Register
                       </Link>

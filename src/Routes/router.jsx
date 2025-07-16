@@ -32,6 +32,7 @@ import AdvertisementDetails from "../Components/Pages/AdvertisementDetails/Adver
 import Markets from "../Components/Pages/Markets/Markets";
 import AllOrder from "../Components/Pages/Dashboard/AllOrder/AllOrder";
 import AdminAllProducts from "../Components/Pages/Dashboard/AdminAllProducts/AdminAllProducts";
+import AdminOffersPage from "../Components/Pages/Dashboard/AdminOffersPage/AdminOffersPage";
 
 
 
@@ -188,6 +189,14 @@ export const router = createBrowserRouter([
                 element:
                     <AdminRoute>
                         <AdminAllProducts />
+                    </AdminRoute>
+
+            },
+            {
+                path: 'adminOffersPage',
+                element:
+                    <AdminRoute>
+                        <AdminOffersPage />
                     </AdminRoute>
 
             },

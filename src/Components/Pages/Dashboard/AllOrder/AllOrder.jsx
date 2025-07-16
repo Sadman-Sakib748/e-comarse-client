@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import useAxiosSecure from '../../../hooks/useAxiousSecure';
+import Spinner from '../../Spinner/Spinner';
 
 const AllOrder = () => {
   const axiosSecure = useAxiosSecure();
@@ -15,7 +16,7 @@ const AllOrder = () => {
   });
 
   if (isLoading) {
-    return <p className="text-center mt-10">Loading...</p>;
+    return <p className="text-center mt-10"><Spinner /></p>;
   }
 
   if (isError) {

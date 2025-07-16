@@ -56,7 +56,7 @@ const Advertisements = () => {
           {advertisements.length === 0 ? (
             <p className="text-white text-center col-span-3">No offers available</p>
           ) : (
-            advertisements.map((ad, index) => (
+            advertisements.slice(0, 6).map((ad, index) => (
               <motion.div
                 key={ad._id || index}
                 initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
@@ -91,7 +91,17 @@ const Advertisements = () => {
             ))
           )}
         </div>
+        
       </div>
+      <div className="flex justify-center items-center my-4">
+       <Link to={'/offer'}>
+        <button className="flex items-center px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-full shadow-md transition duration-300">
+          View More
+        </button>
+       </Link>
+      </div>
+
+
     </section>
   );
 };

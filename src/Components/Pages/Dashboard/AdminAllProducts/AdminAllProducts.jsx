@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useAxiosSecure from '../../../hooks/useAxiousSecure';
 import { toast } from 'react-hot-toast';
 import { useState } from 'react';
+import Spinner from '../../Spinner/Spinner';
 
 const AdminProducts = () => {
   const axiosSecure = useAxiosSecure();
@@ -71,7 +72,7 @@ const AdminProducts = () => {
     updateMutation.mutate({ id, newPrice: editPrice });
   };
 
-  if (isLoading) return <p className="text-center py-10">⏳ Loading products...</p>;
+  if (isLoading) return <p className="text-center py-10"><Spinner /></p>;
   if (isError) return <p className="text-center text-red-600 py-10">❌ {error.message}</p>;
 
   return (
