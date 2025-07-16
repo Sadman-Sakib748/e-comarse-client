@@ -12,7 +12,7 @@ const ProductList = () => {
 
   const encodedEmail = encodeURIComponent(user?.email || '');
 
-  // ✅ Load products
+
   const { data: products = [], isLoading, isError } = useQuery({
     enabled: !!user?.email,
     queryKey: ['products', user?.email],
