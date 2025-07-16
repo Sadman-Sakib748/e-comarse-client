@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import Spinner from '../../Spinner/Spinner';
 
 const PaymentHistory = () => {
-  const { user, loading } = useAuth(); // Add loading if available from context
+  const { user, loading } = useAuth(); 
   const axiosSecure = useAxiousSecure();
 
   const {
