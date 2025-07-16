@@ -66,7 +66,7 @@ const DashboardHome = () => {
       const res = await axiosSecure.delete(`/watchlist/${id}`);
       if (res.data.deletedCount > 0) {
         toast.success("Removed from watchlist");
-        refetchWatchlist(); // Refresh the table
+        refetchWatchlist(); 
       }
     } catch (error) {
       toast.error("Failed to remove",error);
