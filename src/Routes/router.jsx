@@ -84,7 +84,7 @@ export const router = createBrowserRouter([
             {
                 path: 'products/:id',
                 element: <PrivateRoute><Products /></PrivateRoute>,
-                loader: async ({ params }) => fetch(`http://localhost:5000/products/${params.id}`)
+                loader: async ({ params }) => fetch(`https://assignment-12-server-delta-orcin.vercel.app/products/${params.id}`)
 
             },
 
