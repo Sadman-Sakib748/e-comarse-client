@@ -9,7 +9,6 @@ const AdminProducts = () => {
   const [editMode, setEditMode] = useState(null);
   const [editPrice, setEditPrice] = useState('');
 
-  // ✅ Load all products for admin (including pending/rejected/approved)
   const { data: products = [], isLoading, isError, error } = useQuery({
     queryKey: ['adminAllProducts'],
     queryFn: async () => {
