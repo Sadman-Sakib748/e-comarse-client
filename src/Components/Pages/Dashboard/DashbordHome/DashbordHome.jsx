@@ -69,7 +69,7 @@ const DashboardHome = () => {
         refetchWatchlist(); // Refresh the table
       }
     } catch (error) {
-      toast.error("Failed to remove");
+      toast.error("Failed to remove",error);
     }
   };
 
