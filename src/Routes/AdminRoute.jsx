@@ -4,7 +4,6 @@ import useRole from '../Components/hooks/useRole';
 import Spinner from '../Components/Pages/Spinner/Spinner';
 
 
-
 const AdminRoute = ({ children }) => {
     const { user, loading } = useAuth();
     const [role, roleLoading] = useRole();

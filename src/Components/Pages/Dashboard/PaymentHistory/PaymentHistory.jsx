@@ -13,7 +13,7 @@ const PaymentHistory = () => {
     isPending,
     data: payments = [],
   } = useQuery({
-    enabled: !!user?.email, // Only run query when user.email is available
+    enabled: !!user?.email, 
     queryKey: ['payments', user?.email],
     queryFn: async () => {
       const res = await axiosSecure.get(`/payments?email=${user.email}`);
