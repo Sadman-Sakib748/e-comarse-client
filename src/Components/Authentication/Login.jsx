@@ -11,7 +11,6 @@ const Login = () => {
     const location = useLocation();
     const axiosPublic = useAxiosPublic();
 
-    // ✅ আগের পেজ যেখানে থেকে এসেছে, না থাকলে হোম
     const from = location.state?.from?.pathname || "/";
 
     const {
