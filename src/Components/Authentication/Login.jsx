@@ -19,7 +19,6 @@ const Login = () => {
         formState: { errors },
     } = useForm();
 
-    // ✅ Email/Password Login
     const onSubmit = async (data) => {
         signIn(data.email, data.password)
             .then((result) => {
